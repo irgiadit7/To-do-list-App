@@ -5,35 +5,33 @@ function App() {
   const [input, setInput] = useState("");
   const [selectedTodo, setSelectedTodo] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [isDevMode, setIsDevMode] = useState(false);
+  const [isDevMode, setIsDevMode] = useState(false); 
+  const [showTodoPicker, setShowTodoPicker] = useState(false);
 
   // Menggunakan useEffect untuk mempertahankan state modal di dev mode
   useEffect(() => {
-    const savedDevMode = sessionStorage.getItem("isDevMode") === "true";
+    const savedDevMode = sessionStorage.getItem('isDevMode') === 'true';
     if (savedDevMode) {
       setIsDevMode(true);
-      const savedTodo = JSON.parse(sessionStorage.getItem("selectedTodo"));
+      const savedTodo = JSON.parse(sessionStorage.getItem('selectedTodo'));
       if (savedTodo) {
         setSelectedTodo(savedTodo);
         setShowModal(true);
       }
-
+      
       // Tambahkan todo dummy jika tidak ada todo
       if (todos.length === 0) {
-        setTodos([
-          {
+         setTodos([{
             id: Date.now(),
             text: "Contoh Tugas (Mode Dev)",
             completed: false,
-            details:
-              "Ini adalah detail tugas dalam mode pengembangan. Anda bisa mengedit tampilan modal ini secara langsung tanpa perlu halaman memuat ulang.",
+            details: "Ini adalah detail tugas dalam mode pengembangan. Anda bisa mengedit tampilan modal ini secara langsung tanpa perlu halaman memuat ulang.",
             date: "",
             time: "",
-            subtasks: [{ id: 1, text: "Sub-tugas 1", completed: false }],
+            subtasks: [{id: 1, text: "Sub-tugas 1", completed: false}],
             priority: "high",
             isFavorite: false,
-          },
-        ]);
+          }]);
       }
     }
   }, []);
@@ -73,7 +71,7 @@ function App() {
     setTodos(todos.filter((t) => t.id !== id));
     setSelectedTodo(null);
     setShowModal(false);
-    sessionStorage.removeItem("selectedTodo");
+    sessionStorage.removeItem('selectedTodo');
   };
 
   // Fungsi untuk membuka detail tugas
@@ -81,7 +79,7 @@ function App() {
     setSelectedTodo(todo);
     setShowModal(true);
     if (isDevMode) {
-      sessionStorage.setItem("selectedTodo", JSON.stringify(todo));
+      sessionStorage.setItem('selectedTodo', JSON.stringify(todo));
     }
   };
 
@@ -90,7 +88,7 @@ function App() {
     setSelectedTodo(null);
     setShowModal(false);
     if (isDevMode) {
-      sessionStorage.removeItem("selectedTodo");
+      sessionStorage.removeItem('selectedTodo');
     }
   };
 
@@ -98,48 +96,58 @@ function App() {
   const updateTodoDetails = (updatedFields) => {
     setTodos(
       todos.map((todo) =>
-        todo.id === selectedTodo.id ? { ...todo, ...updatedFields } : todo
+        todo.id === selectedTodo.id
+          ? { ...todo, ...updatedFields }
+          : todo
       )
     );
     setSelectedTodo((prev) => ({ ...prev, ...updatedFields }));
     if (isDevMode) {
-      sessionStorage.setItem(
-        "selectedTodo",
-        JSON.stringify({ ...selectedTodo, ...updatedFields })
-      );
+      sessionStorage.setItem('selectedTodo', JSON.stringify({ ...selectedTodo, ...updatedFields }));
     }
   };
 
   const handleAddSubtask = (e) => {
-    if (e.key === "Enter" && e.target.value.trim()) {
-      const newSubtask = {
-        id: Date.now(),
-        text: e.target.value,
-        completed: false,
-      };
+    if (e.key === 'Enter' && e.target.value.trim()) {
+      const newSubtask = { id: Date.now(), text: e.target.value, completed: false };
       updateTodoDetails({ subtasks: [...selectedTodo.subtasks, newSubtask] });
       e.target.value = "";
     }
   };
 
   const toggleSubtask = (subtaskId) => {
-    const updatedSubtasks = selectedTodo.subtasks.map((subtask) =>
-      subtask.id === subtaskId
-        ? { ...subtask, completed: !subtask.completed }
-        : subtask
+    const updatedSubtasks = selectedTodo.subtasks.map(subtask =>
+      subtask.id === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
     );
     updateTodoDetails({ subtasks: updatedSubtasks });
   };
 
   const deleteSubtask = (subtaskId) => {
-    const updatedSubtasks = selectedTodo.subtasks.filter(
-      (subtask) => subtask.id !== subtaskId
-    );
+    const updatedSubtasks = selectedTodo.subtasks.filter(subtask => subtask.id !== subtaskId);
     updateTodoDetails({ subtasks: updatedSubtasks });
   };
+  
+  // Fungsi baru untuk menambahkan tugas yang sudah ada sebagai sub-tugas
+  const addExistingAsSubtask = (todoToAddId) => {
+    const todoToAdd = todos.find(t => t.id === todoToAddId);
+    if (!todoToAdd) return;
 
-  const toggleFavorite = () => {
-    updateTodoDetails({ isFavorite: !selectedTodo.isFavorite });
+    // Menambahkan tugas yang dipilih sebagai sub-tugas
+    updateTodoDetails({ subtasks: [...selectedTodo.subtasks, todoToAdd] });
+    // Menghapus tugas yang sudah ditambahkan dari daftar utama
+    setTodos(todos.filter(t => t.id !== todoToAddId));
+    setShowTodoPicker(false);
+  };
+
+  const toggleFavorite = (id) => {
+    setTodos(
+      todos.map((todo) =>
+        todo.id === id ? { ...todo, isFavorite: !todo.isFavorite } : todo
+      )
+    );
+    if (selectedTodo && selectedTodo.id === id) {
+      setSelectedTodo((prev) => ({ ...prev, isFavorite: !prev.isFavorite }));
+    }
   };
 
   const getPriorityColor = (priority) => {
@@ -159,6 +167,20 @@ function App() {
   const incompleteTodos = todos.filter((todo) => !todo.completed);
   const completedTodos = todos.filter((todo) => todo.completed);
 
+  // Mengurutkan tugas yang belum selesai: yang difavoritkan di atas
+  const sortedIncompleteTodos = [...incompleteTodos].sort((a, b) => {
+    if (a.isFavorite && !b.isFavorite) return -1;
+    if (!a.isFavorite && b.isFavorite) return 1;
+    return 0;
+  });
+
+  // Daftar tugas yang tersedia untuk dijadikan sub-tugas
+  const availableTodos = todos.filter(t => 
+    t.id !== selectedTodo?.id && 
+    !t.completed &&
+    !selectedTodo?.subtasks.some(sub => sub.id === t.id)
+  );
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-sky-200 to-sky-700 p-4 font-sans">
       <div className="bg-white shadow-lg rounded-3xl p-8 max-w-md w-full">
@@ -167,47 +189,37 @@ function App() {
           <button
             onClick={() => {
               if (todos.length === 0) {
-                setTodos([
-                  {
+                 setTodos([{
                     id: Date.now(),
                     text: "Contoh Tugas (Mode Dev)",
                     completed: false,
-                    details:
-                      "Ini adalah detail tugas dalam mode pengembangan. Anda bisa mengedit tampilan modal ini secara langsung tanpa perlu halaman memuat ulang.",
+                    details: "Ini adalah detail tugas dalam mode pengembangan. Anda bisa mengedit tampilan modal ini secara langsung tanpa perlu halaman memuat ulang.",
                     date: "",
                     time: "",
                     subtasks: [],
                     priority: "high",
                     isFavorite: false,
-                  },
-                ]);
+                  }]);
               }
               setIsDevMode(!isDevMode);
               if (!isDevMode) {
-                const firstTodo =
-                  todos.length > 0
-                    ? todos[0]
-                    : {
-                        id: Date.now(),
-                        text: "Contoh Tugas (Mode Dev)",
-                        completed: false,
-                        details:
-                          "Ini adalah detail tugas dalam mode pengembangan. Anda bisa mengedit tampilan modal ini secara langsung tanpa perlu halaman memuat ulang.",
-                        date: "",
-                        time: "",
-                        subtasks: [],
-                        priority: "high",
-                        isFavorite: false,
-                      };
-                sessionStorage.setItem("isDevMode", "true");
-                sessionStorage.setItem(
-                  "selectedTodo",
-                  JSON.stringify(firstTodo)
-                );
+                const firstTodo = todos.length > 0 ? todos[0] : {
+                  id: Date.now(),
+                  text: "Contoh Tugas (Mode Dev)",
+                  completed: false,
+                  details: "Ini adalah detail tugas dalam mode pengembangan. Anda bisa mengedit tampilan modal ini secara langsung tanpa perlu halaman memuat ulang.",
+                  date: "",
+                  time: "",
+                  subtasks: [],
+                  priority: "high",
+                  isFavorite: false,
+                };
+                sessionStorage.setItem('isDevMode', 'true');
+                sessionStorage.setItem('selectedTodo', JSON.stringify(firstTodo));
                 openTodoDetails(firstTodo);
               } else {
-                sessionStorage.removeItem("isDevMode");
-                sessionStorage.removeItem("selectedTodo");
+                sessionStorage.removeItem('isDevMode');
+                sessionStorage.removeItem('selectedTodo');
                 closeTodoDetails();
               }
             }}
@@ -237,12 +249,10 @@ function App() {
         </div>
 
         {/* Daftar tugas yang belum selesai */}
-        {incompleteTodos.length > 0 && (
+        {sortedIncompleteTodos.length > 0 && (
           <ul className="space-y-4">
-            <h2 className="text-xl font-medium mb-2 text-gray-900">
-              Tugas yang belum selesai
-            </h2>
-            {incompleteTodos.map((todo) => (
+            <h2 className="text-xl font-medium mb-2 text-gray-900">Tugas yang belum selesai</h2>
+            {sortedIncompleteTodos.map((todo) => (
               <li
                 key={todo.id}
                 className="bg-gray-100 p-4 rounded-xl flex justify-between items-center transition-all duration-300 transform hover:scale-[1.02] shadow-sm cursor-pointer"
@@ -265,23 +275,13 @@ function App() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    deleteTodo(todo.id);
+                    toggleFavorite(todo.id);
                   }}
-                  className="ml-2 border-none text-red-500 text-lg hover:text-red-700 active:scale-95 transition-all duration-200"
+                  className={`ml-2 border-none text-lg active:scale-95 transition-all duration-200 ${
+                    todo.isFavorite ? "text-yellow-500" : "text-gray-400"
+                  }`}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="w-5 h-5"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.5 4.478a.75.75 0 0 1 .491.565l.633 4.757a.75.75 0 0 1-.295.617l-5.467 4.549a.75.75 0 0 1-.58.192.75.75 0 0 1-.54-.158L3.38 8.046A.75.75 0 0 1 3 7.534V4.5a.75.75 0 0 1 .75-.75h1.22l.487-1.125A.75.75 0 0 1 6.077 2h3.847a.75.75 0 0 1 .63.375L11.034 3h1.22a.75.75 0 0 1 .75.75v.728l1.325.265a.75.75 0 0 1 .565.491Z"
-                      clipRule="evenodd"
-                    />
-                    <path d="M11.25 4.5h2.25v2.25h-2.25V4.5ZM1.5 10.5h21v12h-21v-12Zm1.5 3h18v6.75h-18V13.5Zm1.5 3h15v3h-15v-3Zm1.5 3h12v3h-12v-3Z" />
-                  </svg>
+                  &#9733;
                 </button>
               </li>
             ))}
@@ -329,18 +329,9 @@ function App() {
                     }}
                     className="ml-2 border-none text-red-500 text-lg hover:text-red-700 active:scale-95 transition-all duration-200"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      className="w-5 h-5"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.5 4.478a.75.75 0 0 1 .491.565l.633 4.757a.75.75 0 0 1-.295.617l-5.467 4.549a.75.75 0 0 1-.58.192.75.75 0 0 1-.54-.158L3.38 8.046A.75.75 0 0 1 3 7.534V4.5a.75.75 0 0 1 .75-.75h1.22l.487-1.125A.75.75 0 0 1 6.077 2h3.847a.75.75 0 0 1 .63.375L11.034 3h1.22a.75.75 0 0 1 .75.75v.728l1.325.265a.75.75 0 0 1 .565.491Z"
-                        clipRule="evenodd"
-                      />
-                      <path d="M11.25 4.5h2.25v2.25h-2.25V4.5ZM1.5 10.5h21v12h-21v-12Zm1.5 3h18v6.75h-18V13.5Zm1.5 3h15v3h-15v-3Zm1.5 3h12v3h-12v-3Z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                      <path fillRule="evenodd" d="M16.5 4.478a.75.75 0 0 1 .491.565l.633 4.757a.75.75 0 0 1-.295.617l-5.467 4.549a.75.75 0 0 1-.58.192.75.75 0 0 1-.54-.158L3.38 8.046A.75.75 0 0 1 3 7.534V4.5a.75.75 0 0 1 .75-.75h1.22l.487-1.125A.75.75 0 0 1 6.077 2h3.847a.75.75 0 0 1 .63.375L11.034 3h1.22a.75.75 0 0 1 .75.75v.728l1.325.265a.75.75 0 0 1 .565.491Z" clipRule="evenodd" />
+                      <path d="M11.25 4.5h2.25v2.25h-2.25V4.5ZM1.5 10.5h21v12h-21v-12Zm1.5 3h18v6.75h-18V13.5Zm1.5 3h15v3h-15v-3Z" />
                     </svg>
                   </button>
                 </li>
@@ -363,7 +354,7 @@ function App() {
             </button>
             <div className="flex items-center space-x-2">
               <button
-                onClick={toggleFavorite}
+                onClick={() => toggleFavorite(selectedTodo.id)}
                 className={`text-2xl hover:scale-110 active:scale-95 transition-all duration-200 ${
                   selectedTodo.isFavorite ? "text-yellow-500" : "text-gray-400"
                 }`}
@@ -374,44 +365,24 @@ function App() {
                 onClick={() => deleteTodo(selectedTodo.id)}
                 className="text-gray-500 hover:text-red-500 active:scale-95 transition-all duration-200"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="16"
-                  fill="currentColor"
-                  class="bi bi-trash-fill"
-                  viewBox="0 0 16 16"
-                >
-                  <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
-                </svg>
+                
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" fill="currentColor" className="bi bi-trash-fill" viewBox="0 0 16 16">
+  <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+</svg>
+                  
+            
               </button>
             </div>
           </div>
 
-          <h2 className="text-3xl text-center font-bold mt-4 mb-2">
-            {selectedTodo?.text}
-          </h2>
-          <div
-            className={`w-full h-2 rounded-full mb-4 ${getPriorityColor(
-              selectedTodo?.priority
-            )}`}
-          ></div>
+          <h2 className="text-3xl text-center font-bold mt-4 mb-2">{selectedTodo?.text}</h2>
+          <div className={`w-full h-2 rounded-full mb-4 ${getPriorityColor(selectedTodo?.priority)}`}></div>
 
           {/* Tambahkan Detail */}
           <div className="my-4 flex">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="40"
-              height="18"
-              fill="currentColor"
-              class="bi bi-list"
-              viewBox="0 0 16 16"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"
-              />
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="18" fill="currentColor" className="bi bi-list" viewBox="0 0 16 16">
+  <path fillRule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>
+</svg>
             <textarea
               className="flex w-full border-none focus:outline-none  transition-all duration-300 text-sm placeholder-grey-950"
               value={selectedTodo?.details}
@@ -484,7 +455,7 @@ function App() {
               </button>
             </div>
           </div>
-
+          
           {/* Tambahkan Sub-tugas */}
           <div className="my-4">
             <label className="block text-gray-700 font-medium mb-1">
@@ -496,6 +467,31 @@ function App() {
               onKeyDown={handleAddSubtask}
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300 text-sm"
             />
+            <button
+              onClick={() => setShowTodoPicker(!showTodoPicker)}
+              className="mt-2 text-sky-600 hover:text-sky-800 text-sm font-semibold"
+            >
+              {showTodoPicker ? "Sembunyikan Daftar" : "Pilih dari Daftar..."}
+            </button>
+            {showTodoPicker && (
+              <ul className="mt-4 border border-gray-200 rounded-lg p-2 space-y-2 max-h-40 overflow-y-auto">
+                {availableTodos.length > 0 ? (
+                  availableTodos.map(todo => (
+                    <li key={todo.id} className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg text-sm">
+                      <span className="truncate">{todo.text}</span>
+                      <button
+                        onClick={() => addExistingAsSubtask(todo.id)}
+                        className="ml-2 px-3 py-1 bg-sky-500 text-white rounded-full text-xs hover:bg-sky-600"
+                      >
+                        Tambahkan
+                      </button>
+                    </li>
+                  ))
+                ) : (
+                  <li className="text-gray-400 text-center text-sm">Tidak ada tugas lain yang tersedia.</li>
+                )}
+              </ul>
+            )}
             <ul className="mt-2 space-y-2">
               {selectedTodo?.subtasks.map((subtask) => (
                 <li
@@ -511,9 +507,7 @@ function App() {
                     />
                     <span
                       className={`text-sm ${
-                        subtask.completed
-                          ? "line-through text-gray-500"
-                          : "text-gray-800"
+                        subtask.completed ? "line-through text-gray-500" : "text-gray-800"
                       }`}
                     >
                       {subtask.text}
