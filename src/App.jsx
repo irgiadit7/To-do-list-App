@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -6,6 +6,14 @@ function App() {
   const [selectedTodo, setSelectedTodo] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [isDevMode, setIsDevMode] = useState(false);
+  const [listName, setListName] = useState("Tugas Saya");
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+  const [sortOrder, setSortOrder] = useState("manual"); // 'manual', 'date', 'favorite', 'title'
+
+  const sortMenuRef = useRef(null);
+  const optionsMenuRef = useRef(null);
+  const listNameInputRef = useRef(null);
 
   // Menggunakan useEffect untuk mempertahankan state modal di dev mode
   useEffect(() => {
@@ -32,11 +40,28 @@ function App() {
             subtasks: [{ id: 1, text: "Sub-tugas 1", completed: false }],
             priority: "high",
             isFavorite: false,
+            createdAt: new Date(),
           },
         ]);
       }
     }
   }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target)) {
+        setShowSortMenu(false);
+      }
+      if (optionsMenuRef.current && !optionsMenuRef.current.contains(event.target)) {
+        setShowOptionsMenu(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [sortMenuRef, optionsMenuRef]);
 
   // Fungsi untuk menambahkan tugas baru
   const addTodo = () => {
@@ -53,6 +78,7 @@ function App() {
           subtasks: [],
           priority: "normal",
           isFavorite: false,
+          createdAt: new Date(),
         },
       ]);
       setInput("");
@@ -138,8 +164,17 @@ function App() {
     updateTodoDetails({ subtasks: updatedSubtasks });
   };
 
-  const toggleFavorite = () => {
-    updateTodoDetails({ isFavorite: !selectedTodo.isFavorite });
+  // Logika baru untuk toggle favorite
+  const toggleFavorite = (id) => {
+    setTodos(
+      todos.map((todo) =>
+        todo.id === id ? { ...todo, isFavorite: !todo.isFavorite } : todo
+      )
+    );
+    // Jika modal terbuka dan tugas yang diubah adalah yang terpilih
+    if (selectedTodo && selectedTodo.id === id) {
+      setSelectedTodo((prev) => ({ ...prev, isFavorite: !prev.isFavorite }));
+    }
   };
 
   const getPriorityColor = (priority) => {
@@ -155,16 +190,97 @@ function App() {
     }
   };
 
-  // Memisahkan tugas ke dalam dua daftar: belum selesai dan sudah selesai
-  const incompleteTodos = todos.filter((todo) => !todo.completed);
-  const completedTodos = todos.filter((todo) => todo.completed);
+  const handleRenameList = () => {
+    const newName = prompt("Masukkan nama daftar baru:", listName);
+    if (newName && newName.trim()) {
+      setListName(newName.trim());
+    }
+    setShowOptionsMenu(false);
+  };
+
+  const handleDeleteCompleted = () => {
+    setTodos(todos.filter(todo => !todo.completed));
+    setShowOptionsMenu(false);
+  };
+
+  const sortedTodos = () => {
+    let sortedList = [...todos];
+    if (sortOrder === "date") {
+      sortedList.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    } else if (sortOrder === "favorite") {
+      sortedList.sort((a, b) => b.isFavorite - a.isFavorite);
+    } else if (sortOrder === "title") {
+      sortedList.sort((a, b) => a.text.localeCompare(b.text));
+    }
+    return sortedList;
+  };
+  
+  const favoriteTodos = sortedTodos().filter((todo) => todo.isFavorite && !todo.completed);
+  const incompleteTodos = sortedTodos().filter((todo) => !todo.completed && !todo.isFavorite);
+  const completedTodos = sortedTodos().filter((todo) => todo.completed);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-sky-200 to-sky-700 p-4 font-sans">
       <div className="bg-white shadow-lg rounded-3xl p-8 max-w-md w-full">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-medium text-gray-900">Tugas Saya</h1>
-          <button
+          <h1 className="text-3xl font-medium text-gray-900">{listName}</h1>
+          <div className="flex items-center space-x-2 relative">
+            <div className="relative">
+              <button
+                onClick={() => setShowSortMenu(!showSortMenu)}
+                className="px-4 py-2 rounded-full transition-all duration-200"
+              >
+               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-down-up" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5m-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5"/>
+</svg>
+              </button>
+              {showSortMenu && (
+                <div ref={sortMenuRef} className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                  <button
+                    onClick={() => { setSortOrder("manual"); setShowSortMenu(false); }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Urutan yang saya buat
+                  </button>
+                  <button
+                    onClick={() => { setSortOrder("date"); setShowSortMenu(false); }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Tanggal
+                  </button>
+                  <button
+                    onClick={() => { setSortOrder("favorite"); setShowSortMenu(false); }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Baru saja dibintangi
+                  </button>
+                  <button
+                    onClick={() => { setSortOrder("title"); setShowSortMenu(false); }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Judul
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="relative">
+              <button onClick={() => setShowOptionsMenu(!showOptionsMenu)} className="p-2 rounded-full hover:bg-gray-200 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                  <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                </svg>
+              </button>
+              {showOptionsMenu && (
+                <div ref={optionsMenuRef} className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                  <button onClick={handleRenameList} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    Ganti Nama Daftar
+                  </button>
+                  <button onClick={handleDeleteCompleted} className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100">
+                    Hapus Semua Tugas Selesai
+                  </button>
+                </div>
+              )}
+            </div>
+            {/* <button
             onClick={() => {
               if (todos.length === 0) {
                 setTodos([
@@ -216,7 +332,8 @@ function App() {
             }`}
           >
             {isDevMode ? "Keluar Mode Dev" : "Mode Dev"}
-          </button>
+          </button> */}
+          </div>
         </div>
 
         <div className="mb-6 flex items-center space-x-2">
@@ -236,7 +353,50 @@ function App() {
           </button>
         </div>
 
-        {/* Daftar tugas yang belum selesai */}
+        {/* Daftar tugas favorit */}
+        {favoriteTodos.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-medium mb-2 text-gray-900 flex items-center">
+              <span className="text-yellow-500 mr-2">&#9733;</span>
+              Favorit
+            </h2>
+            <ul className="space-y-4">
+              {favoriteTodos.map((todo) => (
+                <li
+                  key={todo.id}
+                  className="bg-gray-100 p-4 rounded-xl flex justify-between items-center transition-all duration-300 transform hover:scale-[1.02] shadow-sm cursor-pointer"
+                  onClick={() => openTodoDetails(todo)}
+                >
+                  <div className="flex items-center flex-grow">
+                    <input
+                      type="checkbox"
+                      checked={todo.completed}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        toggleComplete(todo.id);
+                      }}
+                      className="mr-3 w-5 h-5 rounded-full text-sky-600 bg-gray-200 border-gray-300 focus:ring-sky-500 cursor-pointer"
+                    />
+                    <span className="flex-grow text-gray-800 transition-all duration-300 text-sm">
+                      {todo.text}
+                    </span>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(todo.id);
+                    }}
+                    className="ml-2 border-none text-yellow-500 text-lg hover:text-yellow-700 active:scale-95 transition-all duration-200"
+                  >
+                    &#9733;
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Daftar tugas yang belum selesai (non-favorit) */}
         {incompleteTodos.length > 0 && (
           <ul className="space-y-4">
             <h2 className="text-xl font-medium mb-2 text-gray-900">
@@ -265,30 +425,18 @@ function App() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    deleteTodo(todo.id);
+                    toggleFavorite(todo.id);
                   }}
-                  className="ml-2 border-none text-red-500 text-lg hover:text-red-700 active:scale-95 transition-all duration-200"
+                  className="ml-2 border-none text-gray-400 text-lg hover:text-yellow-500 active:scale-95 transition-all duration-200"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="w-5 h-5"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.5 4.478a.75.75 0 0 1 .491.565l.633 4.757a.75.75 0 0 1-.295.617l-5.467 4.549a.75.75 0 0 1-.58.192.75.75 0 0 1-.54-.158L3.38 8.046A.75.75 0 0 1 3 7.534V4.5a.75.75 0 0 1 .75-.75h1.22l.487-1.125A.75.75 0 0 1 6.077 2h3.847a.75.75 0 0 1 .63.375L11.034 3h1.22a.75.75 0 0 1 .75.75v.728l1.325.265a.75.75 0 0 1 .565.491Z"
-                      clipRule="evenodd"
-                    />
-                    <path d="M11.25 4.5h2.25v2.25h-2.25V4.5ZM1.5 10.5h21v12h-21v-12Zm1.5 3h18v6.75h-18V13.5Zm1.5 3h15v3h-15v-3Zm1.5 3h12v3h-12v-3Z" />
-                  </svg>
+                  &#9733;
                 </button>
               </li>
             ))}
           </ul>
         )}
 
-        {/* Pesan jika tidak ada tugas yang belum selesai */}
+        {/* Pesan jika tidak ada tugas */}
         {todos.length === 0 && (
           <p className="text-center text-gray-400 mt-8 text-sm">
             Belum ada tugas. Tambahkan tugas baru di atas!
@@ -363,7 +511,7 @@ function App() {
             </button>
             <div className="flex items-center space-x-2">
               <button
-                onClick={toggleFavorite}
+                onClick={() => toggleFavorite(selectedTodo.id)}
                 className={`text-2xl hover:scale-110 active:scale-95 transition-all duration-200 ${
                   selectedTodo.isFavorite ? "text-yellow-500" : "text-gray-400"
                 }`}
@@ -379,9 +527,10 @@ function App() {
                   width="18"
                   height="16"
                   fill="currentColor"
-                  class="bi bi-trash-fill"
+                  className="bi bi-trash-fill"
                   viewBox="0 0 16 16"
                 >
+
                   <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
                 </svg>
               </button>
@@ -404,11 +553,11 @@ function App() {
               width="40"
               height="18"
               fill="currentColor"
-              class="bi bi-list"
+              className="bi bi-list"
               viewBox="0 0 16 16"
             >
               <path
-                fill-rule="evenodd"
+                fillRule="evenodd"
                 d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"
               />
             </svg>
