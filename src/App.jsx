@@ -31,10 +31,20 @@ function App() {
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [sortOrder, setSortOrder] = useState("manual");
   const [showCompleted, setShowCompleted] = useState(true);
+  const [showMobileInput, setShowMobileInput] = useState(false);
+
 
   const sortMenuRef = useRef(null);
   const optionsMenuRef = useRef(null);
   const scrollableNavRef = useRef(null);
+  const mobileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (showMobileInput && mobileInputRef.current) {
+      mobileInputRef.current.focus();
+    }
+  }, [showMobileInput]);
+
 
   useEffect(() => {
     const savedDevMode = sessionStorage.getItem("isDevMode") === "true";
@@ -68,7 +78,6 @@ function App() {
   }, [sortMenuRef, optionsMenuRef]);
 
   const addTodo = () => {
-    // Pastikan ada list yang dipilih sebelum menambah todo
     if (input.trim() && currentList && currentList !== "favorites") {
       setLists((prevLists) =>
         prevLists.map((list) =>
@@ -95,6 +104,7 @@ function App() {
         )
       );
       setInput("");
+      setShowMobileInput(false);
     } else if (currentList === "favorites") {
         alert("Tidak bisa menambah tugas di daftar Favorit. Silakan pilih daftar lain.");
     }
@@ -282,13 +292,9 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-tr from-sky-200 to-sky-700 p-4 font-sans relative">
-      {/* PERUBAHAN: Tambah padding-bottom (pb-24) untuk mobile agar list tidak tertutup input bar
-      */}
       <div className="bg-white shadow-lg rounded-3xl p-8 max-w-md w-full relative md:static pb-24 md:pb-8">
         {!showModal && (
           <>
-            {/* PERUBAHAN: Hapus `overflow-hidden` dari container menu ini agar bisa di-scroll
-            */}
             <div className="mb-6 flex items-end border-b-2 border-gray-200 relative">
               <div className="flex-none z-10 bg-white">
                 <button
@@ -315,10 +321,11 @@ function App() {
                   ></span>
                 </button>
               </div>
-
+              
+              {/* PERUBAHAN: Tambahkan `min-w-0` dan hapus `flex-shrink-0` agar scrolling bekerja */}
               <div
                 ref={scrollableNavRef}
-                className="flex-grow flex-shrink-0 overflow-x-auto whitespace-nowrap scrollbar-hide flex"
+                className="flex-grow min-w-0 overflow-x-auto whitespace-nowrap scrollbar-hide flex"
               >
                 {lists.map((list) => (
                   <button
@@ -477,8 +484,7 @@ function App() {
                 {incompleteTodos.map((todo) => (
                   <li
                     key={todo.id}
-                    className="bg-gray-100 p-4 rounded-xl flex justify-between items-center transition-all duration-300 transform hover:scale-[1.02] shadow-sm cursor-pointer"
-                    onClick={() => openTodoDetails(todo)}
+                    className="bg-gray-100 p-4 rounded-xl flex justify-between items-center transition-all duration-300 transform hover:scale-[1.02] shadow-sm"
                   >
                     <div className="flex items-center flex-grow overflow-hidden whitespace-nowrap">
                       <input
@@ -490,12 +496,15 @@ function App() {
                         }}
                         className="mr-3 w-5 h-5 rounded-full text-sky-600 bg-gray-200 border-gray-300 focus:ring-sky-500 cursor-pointer flex-shrink-0"
                       />
-                      <span className="flex-grow text-gray-800 transition-all duration-300 text-sm truncate">
+                      <span
+                        onClick={() => openTodoDetails(todo)}
+                        className={`flex-grow text-gray-800 transition-all duration-300 text-sm truncate cursor-pointer ${
+                          todo.completed ? "line-through text-gray-500" : ""
+                        }`}
+                      >
                         {todo.text}
                       </span>
                     </div>
-                    {/* PERUBAHAN: Tombol bintang diperbaiki dengan conditional class dan e.stopPropagation()
-                    */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -555,8 +564,7 @@ function App() {
                     {allCompletedTodos.map((todo) => (
                       <li
                         key={todo.id}
-                        className="bg-gray-100 p-4 rounded-xl flex justify-between items-center transition-all duration-300 transform hover:scale-[1.02] shadow-sm cursor-pointer"
-                        onClick={() => openTodoDetails(todo)}
+                        className="bg-gray-100 p-4 rounded-xl flex justify-between items-center transition-all duration-300 transform hover:scale-[1.02] shadow-sm"
                       >
                         <div className="flex items-center flex-grow overflow-hidden whitespace-nowrap">
                           <input
@@ -568,7 +576,9 @@ function App() {
                             }}
                             className="mr-3 w-5 h-5 rounded-full text-sky-600 bg-gray-200 border-gray-300 focus:ring-sky-500 cursor-pointer flex-shrink-0"
                           />
-                          <span className="flex-grow text-gray-500 line-through text-sm truncate">
+                          <span
+                           onClick={() => openTodoDetails(todo)}
+                           className="flex-grow text-gray-500 line-through text-sm truncate cursor-pointer">
                             {todo.text}
                           </span>
                         </div>
@@ -603,24 +613,33 @@ function App() {
         )}
       </div>
 
-      {/* PERUBAHAN: Input bar baru untuk mobile, menggantikan tombol FAB lama
-      */}
-      {!showModal && (
+      {!showModal && !showMobileInput && (
+        <div className="md:hidden fixed bottom-4 right-4 z-20">
+          <button
+            onClick={() => setShowMobileInput(true)}
+            className="bg-sky-600 text-white w-14 h-14 rounded-full text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-200 shadow-lg flex items-center justify-center"
+            disabled={currentList === "favorites"}
+          >
+            +
+          </button>
+        </div>
+      )}
+
+      {!showModal && showMobileInput && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 z-20">
           <div className="flex items-center space-x-2">
             <input
+              ref={mobileInputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               type="text"
-              placeholder={currentList === 'favorites' ? 'Pilih daftar lain' : 'Tambahkan tugas baru...'}
+              placeholder="Tambahkan tugas baru..."
               className="flex-grow px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300 placeholder-gray-400 text-sm"
               onKeyDown={(e) => e.key === "Enter" && addTodo()}
-              disabled={currentList === 'favorites'}
             />
             <button
               onClick={addTodo}
-              className="bg-sky-600 text-white w-12 h-12 rounded-full text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-200 shadow-md flex items-center justify-center flex-shrink-0 disabled:bg-gray-400"
-              disabled={currentList === 'favorites'}
+              className="bg-sky-600 text-white w-12 h-12 rounded-full text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-200 shadow-md flex items-center justify-center flex-shrink-0"
             >
               +
             </button>
