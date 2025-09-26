@@ -33,18 +33,33 @@ function App() {
   const [showCompleted, setShowCompleted] = useState(true);
   const [showMobileInput, setShowMobileInput] = useState(false);
 
+  const [user, setUser] = useState(null);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  
+  // --- PERUBAHAN: State untuk modal tambah daftar ---
+  const [showAddListModal, setShowAddListModal] = useState(false);
+  const [newListName, setNewListName] = useState("");
+
 
   const sortMenuRef = useRef(null);
   const optionsMenuRef = useRef(null);
   const scrollableNavRef = useRef(null);
   const mobileInputRef = useRef(null);
+  const profileMenuRef = useRef(null);
+  const newListInputRef = useRef(null);
 
   useEffect(() => {
     if (showMobileInput && mobileInputRef.current) {
       mobileInputRef.current.focus();
     }
   }, [showMobileInput]);
-
+  
+  // --- PERUBAHAN: useEffect untuk fokus pada input di modal tambah daftar ---
+  useEffect(() => {
+    if (showAddListModal && newListInputRef.current) {
+      newListInputRef.current.focus();
+    }
+  }, [showAddListModal]);
 
   useEffect(() => {
     const savedDevMode = sessionStorage.getItem("isDevMode") === "true";
@@ -69,13 +84,33 @@ function App() {
       ) {
         setShowOptionsMenu(false);
       }
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setShowProfileMenu(false);
+      }
     }
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [sortMenuRef, optionsMenuRef]);
+  }, [sortMenuRef, optionsMenuRef, profileMenuRef]);
+
+  const handleLogin = () => {
+    alert("Fungsi login akan diimplementasikan di sini.");
+    setUser({ name: "User" });
+    setShowProfileMenu(false);
+  };
+
+  const handleRegister = () => {
+    alert("Fungsi registrasi akan diimplementasikan di sini.");
+    setShowProfileMenu(false);
+  };
+
+  const handleLogout = () => {
+    alert("Anda telah logout.");
+    setUser(null);
+    setShowProfileMenu(false);
+  };
 
   const addTodo = () => {
     if (input.trim() && currentList && currentList !== "favorites") {
@@ -106,7 +141,7 @@ function App() {
       setInput("");
       setShowMobileInput(false);
     } else if (currentList === "favorites") {
-        alert("Tidak bisa menambah tugas di daftar Favorit. Silakan pilih daftar lain.");
+      alert("Tidak bisa menambah tugas di daftar Favorit. Silakan pilih daftar lain.");
     }
   };
 
@@ -237,6 +272,22 @@ function App() {
     setShowOptionsMenu(false);
   };
 
+  // --- PERUBAHAN: Hapus konfirmasi window.confirm ---
+  const handleDeleteList = (listId) => {
+    if (lists.length <= 1) {
+        alert("Tidak bisa menghapus satu-satunya daftar yang ada.");
+        return;
+    }
+    
+    const newLists = lists.filter(list => list.id !== listId);
+    setLists(newLists);
+
+    if (currentList === listId) {
+        setCurrentList(newLists[0].id);
+    }
+    setShowOptionsMenu(false);
+  };
+
   const handleDeleteCompleted = () => {
     setLists((prevLists) =>
       prevLists.map((list) => ({
@@ -247,22 +298,26 @@ function App() {
     setShowOptionsMenu(false);
   };
 
-  const addList = () => {
-    const listName = prompt("Masukkan nama daftar baru:");
-    if (listName && listName.trim()) {
+  // --- PERUBAHAN: Logika untuk menyimpan daftar baru dari modal ---
+  const handleAddNewList = () => {
+    if (newListName.trim()) {
       const newId = Date.now().toString();
       setLists((prevLists) => [
         ...prevLists,
         {
           id: newId,
-          name: listName.trim(),
+          name: newListName.trim(),
           todos: [],
         },
       ]);
       setCurrentList(newId);
+      setNewListName("");
+      setShowAddListModal(false);
+    } else {
+        alert("Nama daftar tidak boleh kosong.");
     }
   };
-
+  
   const getSortedTodos = () => {
     let todosToDisplay;
     if (currentList === "favorites") {
@@ -291,7 +346,58 @@ function App() {
     .filter((todo) => todo.completed);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-tr from-sky-200 to-sky-700 p-4 font-sans relative">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-tr from-sky-200 to-sky-700  p-4 font-sans relative">
+        
+        {!showModal && !showAddListModal && (
+            <div className="fixed md:absolute top-4 right-4 z-40">
+                <div className="relative" ref={profileMenuRef}>
+                    <button
+                        onClick={() => setShowProfileMenu(!showProfileMenu)}
+                        className="w-10 h-10 rounded-full bg-gray-200/80 backdrop-blur-sm hover:bg-gray-300 flex items-center justify-center transition-colors"
+                        aria-label="Buka menu profil"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-person-fill text-gray-600" viewBox="0 0 16 16">
+                            <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                        </svg>
+                    </button>
+                    {showProfileMenu && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg">
+                            {user ? (
+                                <>
+                                    <div className="px-4 py-3 text-sm text-gray-700">
+                                        <div>Masuk sebagai</div>
+                                        <div className="font-semibold truncate">{user.name}</div>
+                                    </div>
+                                    <div className="border-t border-gray-100"></div>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
+                                    >
+                                        Logout
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={handleLogin}
+                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                        Login
+                                    </button>
+                                    <button
+                                        onClick={handleRegister}
+                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                        Daftar
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
+
       <div className="bg-white shadow-lg rounded-3xl p-8 max-w-md w-full relative md:static pb-24 md:pb-8">
         {!showModal && (
           <>
@@ -322,10 +428,9 @@ function App() {
                 </button>
               </div>
               
-              {/* PERUBAHAN: Tambahkan `min-w-0` dan hapus `flex-shrink-0` agar scrolling bekerja */}
               <div
                 ref={scrollableNavRef}
-                className="flex-grow min-w-0 overflow-x-auto whitespace-nowrap scrollbar-hide flex"
+                className="flex-grow min-w-0 overflow-x-auto whitespace-nowrap flex scrollbar scrollbar-thin scrollbar-thumb-sky-500 scrollbar-track-gray-100 scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
               >
                 {lists.map((list) => (
                   <button
@@ -342,11 +447,13 @@ function App() {
                     ></span>
                   </button>
                 ))}
+
+                {/* --- PERUBAHAN: Tombol ini sekarang membuka modal --- */}
                 <button
-                  onClick={addList}
-                  className={`inline-block px-2 md:px-4 font-medium text-gray-900 pb-2 transition-all duration-300 relative group`}
+                    onClick={() => setShowAddListModal(true)}
+                    className="inline-block px-2 md:px-4 font-medium text-gray-900 pb-2 transition-all duration-300 relative group"
                 >
-                  + Daftar Baru
+                    + Daftar Baru
                 </button>
               </div>
             </div>
@@ -454,12 +561,20 @@ function App() {
                       >
                         Hapus Semua Tugas Selesai
                       </button>
+                       {currentList !== "tugas-saya" && (
+                         <button
+                            onClick={() => handleDeleteList(currentList)}
+                            className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
+                          >
+                            Hapus Daftar
+                          </button>
+                       )}
                     </div>
                   )}
                 </div>
               </div>
             </div>
-
+            
             <div className="hidden md:flex mb-6 items-center space-x-2">
               <input
                 value={input}
@@ -478,7 +593,6 @@ function App() {
                 +
               </button>
             </div>
-
             {incompleteTodos.length > 0 && (
               <ul className="space-y-4">
                 {incompleteTodos.map((todo) => (
@@ -522,7 +636,6 @@ function App() {
                 ))}
               </ul>
             )}
-
             {(sortedTodos.length === 0 && currentList !== 'favorites') && (
               <p className="text-center text-gray-400 mt-8 text-sm">
                 Daftar ini kosong.
@@ -533,8 +646,6 @@ function App() {
                 Belum ada tugas favorit.
               </p>
             )}
-
-
             {allCompletedTodos.length > 0 && (
               <div className="mt-8 pt-8 border-t-2 border-gray-200">
                 <button
@@ -612,6 +723,42 @@ function App() {
           </>
         )}
       </div>
+
+      {/* --- MODAL UNTUK MENAMBAH DAFTAR BARU --- */}
+      {showAddListModal && (
+        <div className="fixed inset-0 bg-white z-50 p-4 flex flex-col">
+            <div className="flex items-center justify-between pb-4 border-b">
+                <button
+                    onClick={() => {
+                        setShowAddListModal(false);
+                        setNewListName(""); // Reset nama saat modal ditutup
+                    }}
+                    className="text-gray-600 hover:text-gray-800 text-2xl"
+                >
+                    &times;
+                </button>
+                <h2 className="text-xl font-semibold text-gray-800">Buat daftar baru</h2>
+                <button
+                    onClick={handleAddNewList}
+                    className="text-sky-600 hover:text-sky-800 font-semibold disabled:text-gray-400"
+                    disabled={!newListName.trim()}
+                >
+                    Selesai
+                </button>
+            </div>
+            <div className="mt-6">
+                <input
+                    ref={newListInputRef}
+                    type="text"
+                    value={newListName}
+                    onChange={(e) => setNewListName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAddNewList()}
+                    placeholder="Masukkan judul daftar"
+                    className="w-full text-lg p-2 border-b-2 border-sky-500 focus:outline-none"
+                />
+            </div>
+        </div>
+      )}
 
       {!showModal && !showMobileInput && (
         <div className="md:hidden fixed bottom-4 right-4 z-20">
