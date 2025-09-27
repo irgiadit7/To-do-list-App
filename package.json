@@ -1,5 +1,6 @@
 {
   "name": "my-react-app",
+  "homepage": "https://irgiadit7.github.io/To-do-list-App",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,7 +8,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",
@@ -17,6 +20,7 @@
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "gh-pages": "^6.3.0",
     "lucide-react": "^0.544.0",
     "motion": "^12.23.22",
     "react": "^19.1.1",
