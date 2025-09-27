@@ -12,21 +12,19 @@ function App() {
     {
       id: "tugas-saya",
       name: "Tugas Saya",
-      todos: [
-        {
-          id: Date.now(),
-          text: "Contoh Tugas",
-          completed: false,
-          details:
-            "Ini adalah detail tugas dalam mode pengembangan. Anda bisa mengedit tampilan modal ini secara langsung tanpa perlu halaman memuat ulang.",
-          date: "",
-          time: "",
-          subtasks: [{ id: 1, text: "Sub-tugas 1", completed: false }],
-          priority: "high",
-          isFavorite: true,
-          createdAt: new Date(),
-        },
-      ],
+      todos: Array.from({ length: 15 }, (_, i) => ({
+        id: Date.now() + i,
+        text: `Contoh Tugas Scroll ${i + 1}`,
+        completed: i > 10 ? true : false, // Membuat beberapa tugas selesai untuk demo
+        details:
+          "Ini adalah detail tugas dalam mode pengembangan. Anda bisa mengedit tampilan modal ini secara langsung tanpa perlu halaman memuat ulang.",
+        date: "",
+        time: "",
+        subtasks: [{ id: 1, text: "Sub-tugas 1", completed: false }],
+        priority: "high",
+        isFavorite: i % 3 === 0,
+        createdAt: new Date(),
+      })),
     },
   ]);
   // State untuk melacak ID dari daftar yang sedang aktif/dipilih pengguna.
@@ -353,8 +351,12 @@ function App() {
   // === BAGIAN RENDER (JSX) ===
   // ===================================================================================
   return (
-    // PERUBAHAN FINAL: Semua kelas layout ada di sini, tidak ada div tambahan.
-    <BackgroundBeamsWithCollision className="lg:max-h-screen min-h-screen w-full bg-slate-950 flex flex-col items-center justify-center p-4 font-sans relative">
+    <div className="bg-slate-950 font-sans">
+      {/* LAPISAN LATAR BELAKANG (TETAP) */}
+      <BackgroundBeamsWithCollision className="fixed lg:max-h-screen min-h-screen bg-zinc-950  mdinset-0 z-0"/>
+      
+      {/* LAPISAN KONTEN (BISA DI-SCROLL) */}
+      <div className="relative z-10 w-full h-screen overflow-y-auto scrollbar-hide-native p-4 flex flex-col items-center">
 
         {/* --- CSS TAMBAHAN UNTUK STYLING --- */}
         <style>{`
@@ -383,7 +385,7 @@ function App() {
 
         {/* --- KOMPONEN: Tombol Profil --- */}
         {!showModal && !showAddListModal && (
-          <div className="fixed md:absolute top-4 right-4 z-40">
+          <div className="fixed top-4 right-4 z-40">
             <div className="relative" ref={profileMenuRef}>
               <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-10 h-10 rounded-full bg-gray-200/80 backdrop-blur-sm hover:bg-gray-500 flex items-center justify-center transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-person-fill text-gray-600" viewBox="0 0 16 16">
@@ -413,125 +415,129 @@ function App() {
           </div>
         )}
 
-        {/* --- KONTENER UTAMA TO-DO LIST --- */}
-        <div className={`bg-zinc-900 shadow-lg rounded-3xl p-6 md:p-8 max-w-md w-full relative transition-all duration-300 ${showAddListModal ? 'blur-sm' : 'blur-none'}`}>
-          {!showModal && (
-            <>
-              {/* --- KOMPONEN: Header Navigasi Daftar --- */}
-              <div className="mb-6 flex items-center border-b-2 border-zinc-800 relative">
-                <div className="flex-none z-10">
-                  <button onClick={() => setCurrentList("favorites")} className="px-2 md:px-4 font-medium pb-2 transition-all duration-300 relative group">
-                    <span className={`flex items-center justify-center transition-colors duration-300 ${ currentList === "favorites" ? "text-yellow-400" : "text-white opacity-30"}`}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="24" fill="currentColor" className="bi bi-star-fill" viewBox="0 0 16 16">
-                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
-                      </svg>
-                    </span>
-                    <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-yellow-400 transition-all duration-300 ${currentList === "favorites" ? "w-7 rounded-md" : "w-0"}`}></span>
-                  </button>
-                </div>
-                <div ref={scrollableNavRef} className="flex-grow min-w-0 overflow-x-auto whitespace-nowrap flex scrollbar-hide-native">
-                  {lists.map((list) => (
-                    <button key={list.id} onClick={() => setCurrentList(list.id)} className={`inline-block px-2 md:px-4 font-medium ml-5 pb-2 transition-all duration-300 relative group ${currentList === list.id ? "text-sky-600" : "text-white opacity-50"}`}>
-                      {list.name}
-                      <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-sky-500 transition-all duration-300 ${currentList === list.id ? "w-full" : "w-0"}`}></span>
+        {/* Penyesuaian: Menambahkan my-auto untuk memusatkan secara vertikal jika konten pendek */}
+        <div className="max-w-md w-full my-auto">
+          {/* --- KONTENER UTAMA TO-DO LIST --- */}
+          <div className={`bg-zinc-900 shadow-lg rounded-3xl p-6 md:p-8 w-full relative transition-all duration-300 ${showAddListModal ? 'blur-sm' : 'blur-none'}`}>
+            {!showModal && (
+              <>
+                {/* --- BAGIAN HEADER --- */}
+                <div className="mb-6 flex items-center border-b-2 border-zinc-800 relative">
+                  <div className="flex-none z-10">
+                    <button onClick={() => setCurrentList("favorites")} className="px-2 md:px-4 font-medium pb-2 transition-all duration-300 relative group">
+                      <span className={`flex items-center justify-center transition-colors duration-300 ${ currentList === "favorites" ? "text-yellow-400" : "text-white opacity-30"}`}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="24" fill="currentColor" className="bi bi-star-fill" viewBox="0 0 16 16">
+                          <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                        </svg>
+                      </span>
+                      <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-yellow-400 transition-all duration-300 ${currentList === "favorites" ? "w-7 rounded-md" : "w-0"}`}></span>
                     </button>
-                  ))}
-                  <button onClick={() => setShowAddListModal(true)} className="inline-block px-2 md:px-6 font-medium text-white opacity-50 pb-2 ml-6 transition-all duration-300 relative group">
-                    + Daftar Baru
-                  </button>
-                </div>
-              </div>
-
-              {/* --- KOMPONEN: Judul Daftar dan Tombol Opsi --- */}
-              <div className="flex justify-between items-center mb-6">
-                 <h1 className="text-2xl font-medium text-white opacity-80 truncate pr-2">
-                  {currentList === "favorites" ? "Favorit" : lists.find((l) => l.id === currentList)?.name}
-                </h1>
-                <div className="flex items-center space-x-2 relative flex-shrink-0">
-                  <div className="relative">
-                    <button onClick={() => setShowSortMenu(!showSortMenu)} className="p-2 text-white opacity-80 rounded-full hover:bg-zinc-800 transition-colors">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-down-up" viewBox="0 0 16 16"><path fillRule="evenodd" d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5m-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5"/></svg>
-                    </button>
-                    {showSortMenu && (
-                      <div ref={sortMenuRef} className="absolute right-0 mt-2 w-48 bg-gray-950 border border-gray-800 rounded-md shadow-lg z-20">
-                        <button onClick={() => { setSortOrder("manual"); setShowSortMenu(false); }} className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white">Urutan Saya</button>
-                        <button onClick={() => { setSortOrder("date"); setShowSortMenu(false); }} className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white">Tanggal</button>
-                        <button onClick={() => { setSortOrder("favorite"); setShowSortMenu(false); }} className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white">Favorit</button>
-                        <button onClick={() => { setSortOrder("title"); setShowSortMenu(false); }} className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white">Judul</button>
-                      </div>
-                    )}
                   </div>
-                  <div className="relative">
-                    <button onClick={() => setShowOptionsMenu(!showOptionsMenu)} className="p-2 rounded-full text-white opacity-80 hover:bg-zinc-800 transition-colors">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-three-dots-vertical" viewBox="0 0 16 16"><path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
+                  <div ref={scrollableNavRef} className="flex-grow min-w-0 overflow-x-auto whitespace-nowrap flex scrollbar-hide-native">
+                    {lists.map((list) => (
+                      <button key={list.id} onClick={() => setCurrentList(list.id)} className={`inline-block px-2 md:px-4 font-medium ml-5 pb-2 transition-all duration-300 relative group ${currentList === list.id ? "text-sky-600" : "text-white opacity-50"}`}>
+                        {list.name}
+                        <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-sky-500 transition-all duration-300 ${currentList === list.id ? "w-full" : "w-0"}`}></span>
+                      </button>
+                    ))}
+                    <button onClick={() => setShowAddListModal(true)} className="inline-block px-2 md:px-6 font-medium text-white opacity-50 pb-2 ml-6 transition-all duration-300 relative group">
+                      + Daftar Baru
                     </button>
-                    {showOptionsMenu && (
-                      <div ref={optionsMenuRef} className="absolute right-0 mt-2 w-48 bg-gray-950 border border-gray-800 rounded-md shadow-lg z-20">
-                        <button onClick={handleRenameList} className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white">Ganti Nama</button>
-                        <button onClick={handleDeleteCompleted} className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-zinc-800 hover:text-red-400">Hapus Selesai</button>
-                        {currentList !== "tugas-saya" && currentList !== "favorites" &&(
-                          <button onClick={() => handleDeleteList(currentList)} className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-zinc-800 hover:text-red-400">Hapus Daftar</button>
-                        )}
-                      </div>
-                    )}
                   </div>
                 </div>
-              </div>
 
-              {/* --- KOMPONEN: Input Tambah Tugas (Desktop) --- */}
-              <div className="hidden md:flex mb-6 items-center space-x-2">
-                <div className="relative group flex-grow">
-                  <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 blur opacity-0 group-focus-within:opacity-75 transition duration-200 animate-pulse"></div>
-                  <input value={input} onChange={(e) => setInput(e.target.value)} type="text" placeholder="Tambahkan tugas baru..." className="relative text-white w-full bg-zinc-800 px-4 py-3 border border-white/20 rounded-full focus:outline-none focus:ring-0 focus:border-transparent placeholder-gray-500 text-sm" onKeyDown={(e) => e.key === "Enter" && addTodo()} disabled={currentList === "favorites"}/>
+                {/* --- KOMPONEN: Judul Daftar dan Tombol Opsi --- */}
+                <div className="flex justify-between items-center mb-6">
+                  <h1 className="text-2xl font-medium text-white opacity-80 truncate pr-2">
+                    {currentList === "favorites" ? "Favorit" : lists.find((l) => l.id === currentList)?.name}
+                  </h1>
+                  <div className="flex items-center space-x-2 relative flex-shrink-0">
+                    <div className="relative">
+                      <button onClick={() => setShowSortMenu(!showSortMenu)} className="p-2 text-white opacity-80 rounded-full hover:bg-zinc-800 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-down-up" viewBox="0 0 16 16"><path fillRule="evenodd" d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5m-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5"/></svg>
+                      </button>
+                      {showSortMenu && (
+                        <div ref={sortMenuRef} className="absolute right-0 mt-2 w-48 bg-gray-950 border border-gray-800 rounded-md shadow-lg z-20">
+                          <button onClick={() => { setSortOrder("manual"); setShowSortMenu(false); }} className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white">Urutan Saya</button>
+                          <button onClick={() => { setSortOrder("date"); setShowSortMenu(false); }} className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white">Tanggal</button>
+                          <button onClick={() => { setSortOrder("favorite"); setShowSortMenu(false); }} className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white">Favorit</button>
+                          <button onClick={() => { setSortOrder("title"); setShowSortMenu(false); }} className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white">Judul</button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <button onClick={() => setShowOptionsMenu(!showOptionsMenu)} className="p-2 rounded-full text-white opacity-80 hover:bg-zinc-800 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-three-dots-vertical" viewBox="0 0 16 16"><path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
+                      </button>
+                      {showOptionsMenu && (
+                        <div ref={optionsMenuRef} className="absolute right-0 mt-2 w-48 bg-gray-950 border border-gray-800 rounded-md shadow-lg z-20">
+                          <button onClick={handleRenameList} className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white">Ganti Nama</button>
+                          <button onClick={handleDeleteCompleted} className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-zinc-800 hover:text-red-400">Hapus Selesai</button>
+                          {currentList !== "tugas-saya" && currentList !== "favorites" &&(
+                            <button onClick={() => handleDeleteList(currentList)} className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-zinc-800 hover:text-red-400">Hapus Daftar</button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <button onClick={addTodo} className="bg-sky-900 text-white w-12 h-12 rounded-2xl text-2xl hover:bg-sky-600 active:scale-95 transition-all duration-200 shadow-md flex items-center justify-center disabled:bg-gray-400 flex-shrink-0" disabled={currentList === "favorites"}>+</button>
-              </div>
 
-              {/* --- KOMPONEN: Daftar Tugas (Belum Selesai) --- */}
-              {incompleteTodos.length > 0 && (
-                <ul className="space-y-1">
-                  {incompleteTodos.map((todo) => (
-                    <li key={todo.id} className="p-4 rounded-xl flex justify-between items-center transition-all duration-300 hover:bg-zinc-800 group">
-                      <div className="flex items-center flex-grow overflow-hidden whitespace-nowrap">
-                        <input id={`todo-${todo.id}`} type="checkbox" checked={todo.completed} onChange={() => toggleComplete(todo.id)} className="custom-checkbox mr-4"/>
-                        <span onClick={() => openTodoDetails(todo)} className="flex-grow text-gray-200 text-sm truncate cursor-pointer group-hover:text-sky-400 transition-colors">{todo.text}</span>
-                      </div>
-                      <button onClick={() => toggleFavorite(todo.id)} className={`ml-2 text-lg hover:scale-110 active:scale-95 transition-all duration-200 flex-shrink-0 ${todo.isFavorite ? 'bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent' : 'text-gray-600 hover:text-yellow-400'}`}>&#9733;</button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              
-              {/* --- KOMPONEN: Pesan Jika Kosong --- */}
-              {sortedTodos.length === 0 && (
-                <p className="text-center text-gray-400 mt-8 text-sm">{currentList === 'favorites' ? 'Belum ada tugas favorit.' : 'Daftar ini kosong.'}</p>
-              )}
-
-              {/* --- KOMPONEN: Daftar Tugas (Selesai) --- */}
-              {completedTodosInCurrentList.length > 0 && (
-                <div className="mt-8 pt-6 border-t-2 border-zinc-800">
-                  <button className="w-full text-left text-lg font-medium mb-4 text-gray-300 flex justify-between items-center" onClick={() => setShowCompleted(!showCompleted)}>
-                    Selesai ({completedTodosInCurrentList.length})
-                    <svg xmlns="http://www.w3.org/2000/svg" className={`w-5 h-5 transition-transform duration-200 ${showCompleted ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                  </button>
-                  {showCompleted && (
-                    <ul className="space-y-1">
-                      {completedTodosInCurrentList.map((todo) => (
-                        <li key={todo.id} className="p-4 rounded-xl flex justify-between items-center transition-all duration-300 hover:bg-zinc-800 group">
-                          <div className="flex items-center flex-grow overflow-hidden whitespace-nowrap">
-                             <input id={`todo-${todo.id}`} type="checkbox" checked={todo.completed} onChange={() => toggleComplete(todo.id)} className="custom-checkbox mr-4"/>
-                            <span onClick={() => openTodoDetails(todo)} className="flex-grow text-gray-500 line-through text-sm truncate cursor-pointer group-hover:text-sky-400 transition-colors">{todo.text}</span>
-                          </div>
-                          <button onClick={() => deleteTodo(todo.id)} className="ml-2 border-none text-red-500 text-lg hover:text-red-700 active:scale-95 transition-all duration-200 flex-shrink-0">
-                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path fillRule="evenodd" d="M16.5 4.478a.75.75 0 0 1 .491.565l.633 4.757a.75.75 0 0 1-.295.617l-5.467 4.549a.75.75 0 0 1-.58.192.75.75 0 0 1-.54-.158L3.38 8.046A.75.75 0 0 1 3 7.534V4.5a.75.75 0 0 1 .75-.75h1.22l.487-1.125A.75.75 0 0 1 6.077 2h3.847a.75.75 0 0 1 .63.375L11.034 3h1.22a.75.75 0 0 1 .75.75v.728l1.325.265a.75.75 0 0 1 .565.491Z" clipRule="evenodd" /><path d="M11.25 4.5h2.25v2.25h-2.25V4.5ZM1.5 10.5h21v12h-21v-12Zm1.5 3h18v6.75h-18V13.5Zm1.5 3h15v3h-15v-3Zm1.5 3h12v3h-12v-3Z" /></svg>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                {/* --- KOMPONEN: Input Tambah Tugas (Desktop) --- */}
+                <div className="hidden md:flex mb-6 items-center space-x-2">
+                  <div className="relative group flex-grow">
+                    <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 blur opacity-0 group-focus-within:opacity-75 transition duration-200 animate-pulse"></div>
+                    <input value={input} onChange={(e) => setInput(e.target.value)} type="text" placeholder="Tambahkan tugas baru..." className="relative text-white w-full bg-zinc-800 px-4 py-3 border border-white/20 rounded-full focus:outline-none focus:ring-0 focus:border-transparent placeholder-gray-500 text-sm" onKeyDown={(e) => e.key === "Enter" && addTodo()} disabled={currentList === "favorites"}/>
+                  </div>
+                  <button onClick={addTodo} className="bg-sky-900 text-white w-12 h-12 rounded-2xl text-2xl hover:bg-sky-600 active:scale-95 transition-all duration-200 shadow-md flex items-center justify-center disabled:bg-gray-400 flex-shrink-0" disabled={currentList === "favorites"}>+</button>
                 </div>
+
+                {/* --- BAGIAN KONTEN --- */}
+                {/* --- KOMPONEN: Daftar Tugas (Belum Selesai) --- */}
+                {incompleteTodos.length > 0 && (
+                  <ul className="space-y-1">
+                    {incompleteTodos.map((todo) => (
+                      <li key={todo.id} className="p-4 rounded-xl flex justify-between items-center transition-all duration-300 hover:bg-zinc-800 group">
+                        <div className="flex items-center flex-grow overflow-hidden whitespace-nowrap">
+                          <input id={`todo-${todo.id}`} type="checkbox" checked={todo.completed} onChange={() => toggleComplete(todo.id)} className="custom-checkbox mr-4"/>
+                          <span onClick={() => openTodoDetails(todo)} className="flex-grow text-gray-200 text-sm truncate cursor-pointer group-hover:text-sky-400 transition-colors">{todo.text}</span>
+                        </div>
+                        <button onClick={() => toggleFavorite(todo.id)} className={`ml-2 text-lg hover:scale-110 active:scale-95 transition-all duration-200 flex-shrink-0 ${todo.isFavorite ? 'bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent' : 'text-gray-600 hover:text-yellow-400'}`}>&#9733;</button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                
+                {/* --- KOMPONEN: Pesan Jika Kosong --- */}
+                {incompleteTodos.length === 0 && (
+                  <p className="text-center text-gray-400 mt-8 text-sm">{currentList === 'favorites' ? 'Belum ada tugas favorit.' : 'Daftar ini kosong.'}</p>
+                )}
+              </>
+            )}
+          </div>
+          
+          {/* --- KONTENER BARU UNTUK TUGAS YANG SUDAH SELESAI --- */}
+          {completedTodosInCurrentList.length > 0 && (
+            <div className="bg-zinc-900 shadow-lg rounded-3xl p-6 md:p-8 w-full mt-4 flex-shrink-0">
+              <button className="w-full text-left text-lg font-medium mb-4 text-gray-300 flex justify-between items-center" onClick={() => setShowCompleted(!showCompleted)}>
+                Selesai ({completedTodosInCurrentList.length})
+                <svg xmlns="http://www.w3.org/2000/svg" className={`w-5 h-5 transition-transform duration-200 ${showCompleted ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              {showCompleted && (
+                  <ul className="space-y-1">
+                    {completedTodosInCurrentList.map((todo) => (
+                      <li key={todo.id} className="p-4 rounded-xl flex justify-between items-center transition-all duration-300 hover:bg-zinc-800 group">
+                        <div className="flex items-center flex-grow overflow-hidden whitespace-nowrap">
+                          <input id={`todo-${todo.id}`} type="checkbox" checked={todo.completed} onChange={() => toggleComplete(todo.id)} className="custom-checkbox mr-4"/>
+                          <span onClick={() => openTodoDetails(todo)} className="flex-grow text-gray-500 line-through text-sm truncate cursor-pointer group-hover:text-sky-400 transition-colors">{todo.text}</span>
+                        </div>
+                        <button onClick={() => deleteTodo(todo.id)} className="ml-2 border-none text-red-500 text-lg hover:text-red-700 active:scale-95 transition-all duration-200 flex-shrink-0">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path fillRule="evenodd" d="M16.5 4.478a.75.75 0 0 1 .491.565l.633 4.757a.75.75 0 0 1-.295.617l-5.467 4.549a.75.75 0 0 1-.58.192.75.75 0 0 1-.54-.158L3.38 8.046A.75.75 0 0 1 3 7.534V4.5a.75.75 0 0 1 .75-.75h1.22l.487-1.125A.75.75 0 0 1 6.077 2h3.847a.75.75 0 0 1 .63.375L11.034 3h1.22a.75.75 0 0 1 .75.75v.728l1.325.265a.75.75 0 0 1 .565.491Z" clipRule="evenodd" /><path d="M11.25 4.5h2.25v2.25h-2.25V4.5ZM1.5 10.5h21v12h-21v-12Zm1.5 3h18v6.75h-18V13.5Zm1.5 3h15v3h-15v-3Zm1.5 3h12v3h-12v-3Z" /></svg>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
               )}
-            </>
+            </div>
           )}
         </div>
 
@@ -623,7 +629,8 @@ function App() {
             </div>
           </div>
         )}
-    </BackgroundBeamsWithCollision>
+      </div>
+    </div>
   );
 }
 
