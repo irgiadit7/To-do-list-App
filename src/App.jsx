@@ -524,7 +524,8 @@ function App() {
                           <span onClick={() => openTodoDetails(todo)} className="flex-grow text-gray-500 line-through text-sm truncate cursor-pointer group-hover:text-sky-400 transition-colors">{todo.text}</span>
                         </div>
                         <button onClick={() => deleteTodo(todo.id)} className="ml-2 border-none text-red-500 text-lg hover:text-red-700 active:scale-95 transition-all duration-200 flex-shrink-0">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path fillRule="evenodd" d="M16.5 4.478a.75.75 0 0 1 .491.565l.633 4.757a.75.75 0 0 1-.295.617l-5.467 4.549a.75.75 0 0 1-.58.192.75.75 0 0 1-.54-.158L3.38 8.046A.75.75 0 0 1 3 7.534V4.5a.75.75 0 0 1 .75-.75h1.22l.487-1.125A.75.75 0 0 1 6.077 2h3.847a.75.75 0 0 1 .63.375L11.034 3h1.22a.75.75 0 0 1 .75.75v.728l1.325.265a.75.75 0 0 1 .565.491Z" clipRule="evenodd" /><path d="M11.25 4.5h2.25v2.25h-2.25V4.5ZM1.5 10.5h21v12h-21v-12Zm1.5 3h18v6.75h-18V13.5Zm1.5 3h15v3h-15v-3Zm1.5 3h12v3h-12v-3Z" /></svg>
+                           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" fill="currentColor" className="bi bi-trash-fill" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" /></svg>
+               
                         </button>
                       </li>
                     ))}
