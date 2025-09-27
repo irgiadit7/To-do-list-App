@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { BackgroundBeamsWithCollision } from "@/components/ui/background-beams-with-collision";
+import thinkingFaceSVG from '/thinking-face-animate.svg'; // <--- 1. IMPORT SVG DI SINI
 
 function App() {
   // ===================================================================================
@@ -12,19 +13,7 @@ function App() {
     {
       id: "tugas-saya",
       name: "Tugas Saya",
-      todos: Array.from({ length: 15 }, (_, i) => ({
-        id: Date.now() + i,
-        text: `Contoh Tugas Scroll ${i + 1}`,
-        completed: i > 10 ? true : false, // Membuat beberapa tugas selesai untuk demo
-        details:
-          "Ini adalah detail tugas dalam mode pengembangan. Anda bisa mengedit tampilan modal ini secara langsung tanpa perlu halaman memuat ulang.",
-        date: "",
-        time: "",
-        subtasks: [{ id: 1, text: "Sub-tugas 1", completed: false }],
-        priority: "high",
-        isFavorite: i % 3 === 0,
-        createdAt: new Date(),
-      })),
+      todos: [], // Dimulai dengan array kosong
     },
   ]);
   // State untuk melacak ID dari daftar yang sedang aktif/dipilih pengguna.
@@ -353,7 +342,7 @@ function App() {
   return (
     <div className="bg-slate-950 font-sans">
       {/* LAPISAN LATAR BELAKANG (TETAP) */}
-      <BackgroundBeamsWithCollision className="fixed lg:max-h-screen min-h-screen bg-zinc-950  mdinset-0 z-0"/>
+      <BackgroundBeamsWithCollision className="fixed inset-0 z-0 min-h-screen lg:max-h-screen bg-slate-950"/>
       
       {/* LAPISAN KONTEN (BISA DI-SCROLL) */}
       <div className="relative z-10 w-full h-screen overflow-y-auto scrollbar-hide-native p-4 flex flex-col items-center">
@@ -509,7 +498,11 @@ function App() {
                 
                 {/* --- KOMPONEN: Pesan Jika Kosong --- */}
                 {incompleteTodos.length === 0 && (
-                  <p className="text-center text-gray-400 mt-8 text-sm">{currentList === 'favorites' ? 'Belum ada tugas favorit.' : 'Daftar ini kosong.'}</p>
+                  <div className="text-center text-gray-400 mt-8">
+                    {/* 2. MENGGUNAKAN <img> DENGAN SRC DARI HASIL IMPORT */}
+                    <img src={thinkingFaceSVG} alt="Thinking Face" className="mx-auto w-50 h-50 mb-4" />
+                    <p className="text-sm">{currentList === 'favorites' ? 'Belum ada tugas favorit.' : 'Daftar ini kosong.'}</p>
+                  </div>
                 )}
               </>
             )}
@@ -565,7 +558,7 @@ function App() {
 
         {/* --- KOMPONEN: Input Tambah Tugas (Mobile) --- */}
         {!showModal && showMobileInput && (
-          <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-zinc-900 border-t border-zinc-800 z-20">
+          <div className="md:hidden fixed bottom-0 left-0 right-0 p-4  border-t border-zinc-800 z-20">
             <div className="flex items-center space-x-2">
               <div className="relative group flex-grow">
                   <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 blur opacity-0 group-focus-within:opacity-75 transition duration-200 animate-pulse"></div>
