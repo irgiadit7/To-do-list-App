@@ -1,54 +1,41 @@
 import React, { useState, useEffect, useRef } from "react";
 import { BackgroundBeamsWithCollision } from "@/components/ui/background-beams-with-collision";
-import thinkingFaceSVG from '/thinking-face-animate.svg'; // <--- 1. IMPORT SVG DI SINI
+import thinkingFaceSVG from '/thinking-face-animate.svg';
 
 function App() {
   // ===================================================================================
   // === BAGIAN STATE MANAGEMENT (useState) ===
   // ===================================================================================
-  // FUNGSI: Mengelola semua data dinamis dalam aplikasi.
 
-  // State untuk menyimpan semua daftar (lists) dan tugas (todos) di dalamnya.
   const [lists, setLists] = useState([
     {
       id: "tugas-saya",
       name: "Tugas Saya",
-      todos: [], // Dimulai dengan array kosong
+      todos: [],
     },
   ]);
-  // State untuk melacak ID dari daftar yang sedang aktif/dipilih pengguna.
   const [currentList, setCurrentList] = useState("tugas-saya");
-  // State untuk menampung teks dari input field saat menambahkan tugas baru.
   const [input, setInput] = useState("");
-  // State untuk menyimpan data lengkap dari tugas yang sedang dibuka detailnya.
   const [selectedTodo, setSelectedTodo] = useState(null);
-  // State untuk menampilkan atau menyembunyikan modal detail tugas.
   const [showModal, setShowModal] = useState(false);
-  // State untuk mode pengembangan (fitur tambahan).
   const [isDevMode, setIsDevMode] = useState(false);
-  // State untuk menampilkan/menyembunyikan menu pengurutan (sort).
   const [showSortMenu, setShowSortMenu] = useState(false);
-  // State untuk menampilkan/menyembunyikan menu opsi (ganti nama, hapus, dll.).
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
-  // State untuk menyimpan metode pengurutan yang dipilih.
   const [sortOrder, setSortOrder] = useState("manual");
-  // State untuk menampilkan/menyembunyikan daftar tugas yang sudah selesai.
   const [showCompleted, setShowCompleted] = useState(true);
-  // State untuk menampilkan/menyembunyikan input field di versi mobile.
   const [showMobileInput, setShowMobileInput] = useState(false);
-  // State untuk data pengguna (null jika belum login).
   const [user, setUser] = useState(null);
-  // State untuk menampilkan/menyembunyikan menu dropdown profil.
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  // State untuk menampilkan/menyembunyikan modal tambah daftar baru.
   const [showAddListModal, setShowAddListModal] = useState(false);
-  // State untuk menampung teks dari input field nama daftar baru.
   const [newListName, setNewListName] = useState("");
+
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [renameInput, setRenameInput] = useState("");
+
 
   // ===================================================================================
   // === BAGIAN REFS (useRef) ===
   // ===================================================================================
-  // FUNGSI: Memberikan akses langsung ke elemen DOM.
 
   const sortMenuRef = useRef(null);
   const optionsMenuRef = useRef(null);
@@ -56,27 +43,31 @@ function App() {
   const mobileInputRef = useRef(null);
   const profileMenuRef = useRef(null);
   const newListInputRef = useRef(null);
+  const renameModalInputRef = useRef(null);
+
 
   // ===================================================================================
   // === BAGIAN USEEFFECT (Lifecycle & Side Effects) ===
   // ===================================================================================
-  // FUNGSI: Menjalankan kode sebagai respons terhadap perubahan state atau siklus hidup komponen.
 
-  // Fokus otomatis ke input field di mobile saat muncul.
   useEffect(() => {
     if (showMobileInput && mobileInputRef.current) {
       mobileInputRef.current.focus();
     }
   }, [showMobileInput]);
 
-  // Fokus otomatis ke input field di modal tambah daftar.
   useEffect(() => {
     if (showAddListModal && newListInputRef.current) {
       newListInputRef.current.focus();
     }
   }, [showAddListModal]);
 
-  // Berjalan sekali saat komponen dimuat untuk memeriksa mode dev.
+  useEffect(() => {
+    if (showRenameModal && renameModalInputRef.current) {
+      renameModalInputRef.current.focus();
+    }
+  }, [showRenameModal]);
+
   useEffect(() => {
     const savedDevMode = sessionStorage.getItem("isDevMode") === "true";
     if (savedDevMode) {
@@ -89,7 +80,6 @@ function App() {
     }
   }, []);
 
-  // Menangani klik di luar menu untuk menutupnya.
   useEffect(() => {
     function handleClickOutside(event) {
       if (sortMenuRef.current && !sortMenuRef.current.contains(event.target)) {
@@ -112,7 +102,6 @@ function App() {
   // === BAGIAN FUNGSI-FUNGSI UTAMA (Handlers & Logic) ===
   // ===================================================================================
 
-  // --- Fungsi untuk Autentikasi (Dummy) ---
   const handleLogin = () => {
     alert("Fungsi login akan diimplementasikan di sini.");
     setUser({ name: "User" });
@@ -128,7 +117,6 @@ function App() {
     setShowProfileMenu(false);
   };
 
-  // --- Fungsi untuk Manajemen Tugas (Todo) ---
   const addTodo = () => {
     if (input.trim() && currentList && currentList !== "favorites") {
       const newTodo = {
@@ -202,7 +190,6 @@ function App() {
     setSelectedTodo((prev) => ({ ...prev, ...updatedFields }));
   };
 
-  // --- Fungsi untuk Manajemen Sub-Tugas ---
   const handleAddSubtask = (e) => {
     if (e.key === "Enter" && e.target.value.trim()) {
       const newSubtask = {
@@ -230,7 +217,6 @@ function App() {
     });
   };
 
-  // --- Fungsi Lain-lain ---
   const toggleFavorite = (id) => {
     setLists(
       lists.map((list) => ({
@@ -258,18 +244,26 @@ function App() {
     }
   };
 
-  // --- Fungsi untuk Manajemen Daftar (List) ---
   const handleRenameList = () => {
     const currentName = lists.find((l) => l.id === currentList)?.name;
-    const newName = prompt("Masukkan nama daftar baru:", currentName);
-    if (newName && newName.trim()) {
+    if (currentList !== "favorites") {
+      setRenameInput(currentName || "");
+      setShowRenameModal(true);
+    } else {
+      alert("Daftar Favorit tidak bisa diubah namanya.");
+    }
+    setShowOptionsMenu(false);
+  };
+
+  const handleRenameSubmit = () => {
+    if (renameInput.trim()) {
       setLists(
         lists.map((list) =>
-          list.id === currentList ? { ...list, name: newName.trim() } : list
+          list.id === currentList ? { ...list, name: renameInput.trim() } : list
         )
       );
     }
-    setShowOptionsMenu(false);
+    setShowRenameModal(false);
   };
 
   const handleDeleteList = (listId) => {
@@ -308,7 +302,6 @@ function App() {
     }
   };
 
-  // --- Logika untuk Pengurutan dan Pemfilteran Tugas ---
   const getSortedTodos = () => {
     let todosToDisplay;
     if (currentList === "favorites") {
@@ -341,13 +334,10 @@ function App() {
   // ===================================================================================
   return (
     <div className="bg-slate-950 font-sans">
-      {/* LAPISAN LATAR BELAKANG (TETAP) */}
       <BackgroundBeamsWithCollision className="fixed inset-0 z-0 min-h-screen lg:max-h-screen bg-slate-950"/>
       
-      {/* LAPISAN KONTEN (BISA DI-SCROLL) */}
       <div className="relative z-10 w-full h-screen overflow-y-auto scrollbar-hide-native p-4 flex flex-col items-center">
 
-        {/* --- CSS TAMBAHAN UNTUK STYLING --- */}
         <style>{`
           .scrollbar-hide-native::-webkit-scrollbar { display: none; }
           .scrollbar-hide-native { -ms-overflow-style: none; scrollbar-width: none; }
@@ -372,7 +362,6 @@ function App() {
           .custom-checkbox:checked::before { transform: translate(-50%, -50%) scale(1); }
         `}</style>
 
-        {/* --- KOMPONEN: Tombol Profil --- */}
         {!showModal && !showAddListModal && (
           <div className="fixed top-4 right-4 z-40">
             <div className="relative" ref={profileMenuRef}>
@@ -404,18 +393,16 @@ function App() {
           </div>
         )}
 
-        {/* Penyesuaian: Menambahkan my-auto untuk memusatkan secara vertikal jika konten pendek */}
         <div className="max-w-md w-full my-auto">
-          {/* --- KONTENER UTAMA TO-DO LIST --- */}
-          <div className={`bg-zinc-900 shadow-lg rounded-3xl p-6 md:p-8 w-full relative transition-all duration-300 ${showAddListModal ? 'blur-sm' : 'blur-none'}`}>
+          <div className={`bg-zinc-900 shadow-lg rounded-3xl p-6 md:p-8 w-full relative transition-all duration-300 ${showAddListModal || showRenameModal ? 'blur-sm' : 'blur-none'}`}>
             {!showModal && (
               <>
-                {/* --- BAGIAN HEADER --- */}
                 <div className="mb-6 flex items-center border-b-2 border-zinc-800 relative">
                   <div className="flex-none z-10">
                     <button onClick={() => setCurrentList("favorites")} className="px-2 md:px-4 font-medium pb-2 transition-all duration-300 relative group">
                       <span className={`flex items-center justify-center transition-colors duration-300 ${ currentList === "favorites" ? "text-yellow-400" : "text-white opacity-30"}`}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="24" fill="currentColor" className="bi bi-star-fill" viewBox="0 0 16 16">
+                          {/* *** PERBAIKAN: Path SVG bintang yang salah telah diperbaiki *** */}
                           <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
                         </svg>
                       </span>
@@ -435,7 +422,6 @@ function App() {
                   </div>
                 </div>
 
-                {/* --- KOMPONEN: Judul Daftar dan Tombol Opsi --- */}
                 <div className="flex justify-between items-center mb-6">
                   <h1 className="text-2xl font-medium text-white opacity-80 truncate pr-2">
                     {currentList === "favorites" ? "Favorit" : lists.find((l) => l.id === currentList)?.name}
@@ -471,7 +457,6 @@ function App() {
                   </div>
                 </div>
 
-                {/* --- KOMPONEN: Input Tambah Tugas (Desktop) --- */}
                 <div className="hidden md:flex mb-6 items-center space-x-2">
                   <div className="relative group flex-grow">
                     <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 blur opacity-0 group-focus-within:opacity-75 transition duration-200 animate-pulse"></div>
@@ -480,8 +465,6 @@ function App() {
                   <button onClick={addTodo} className="bg-sky-900 text-white w-12 h-12 rounded-2xl text-2xl hover:bg-sky-600 active:scale-95 transition-all duration-200 shadow-md flex items-center justify-center disabled:bg-gray-400 flex-shrink-0" disabled={currentList === "favorites"}>+</button>
                 </div>
 
-                {/* --- BAGIAN KONTEN --- */}
-                {/* --- KOMPONEN: Daftar Tugas (Belum Selesai) --- */}
                 {incompleteTodos.length > 0 && (
                   <ul className="space-y-1">
                     {incompleteTodos.map((todo) => (
@@ -496,10 +479,8 @@ function App() {
                   </ul>
                 )}
                 
-                {/* --- KOMPONEN: Pesan Jika Kosong --- */}
                 {incompleteTodos.length === 0 && (
                   <div className="text-center text-gray-400 mt-8">
-                    {/* 2. MENGGUNAKAN <img> DENGAN SRC DARI HASIL IMPORT */}
                     <img src={thinkingFaceSVG} alt="Thinking Face" className="mx-auto w-50 h-50 mb-4" />
                     <p className="text-sm">{currentList === 'favorites' ? 'Belum ada tugas favorit.' : 'Daftar ini kosong.'}</p>
                   </div>
@@ -508,7 +489,6 @@ function App() {
             )}
           </div>
           
-          {/* --- KONTENER BARU UNTUK TUGAS YANG SUDAH SELESAI --- */}
           {completedTodosInCurrentList.length > 0 && (
             <div className="bg-zinc-900 shadow-lg rounded-3xl p-6 md:p-8 w-full mt-4 flex-shrink-0">
               <button className="w-full text-left text-lg font-medium mb-4 text-gray-300 flex justify-between items-center" onClick={() => setShowCompleted(!showCompleted)}>
@@ -525,7 +505,6 @@ function App() {
                         </div>
                         <button onClick={() => deleteTodo(todo.id)} className="ml-2 border-none text-red-500 text-lg hover:text-red-700 active:scale-95 transition-all duration-200 flex-shrink-0">
                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" fill="currentColor" className="bi bi-trash-fill" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" /></svg>
-               
                         </button>
                       </li>
                     ))}
@@ -535,7 +514,6 @@ function App() {
           )}
         </div>
 
-        {/* --- KOMPONEN: Modal Tambah Daftar Baru --- */}
         {showAddListModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div onClick={() => setShowAddListModal(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
@@ -550,14 +528,34 @@ function App() {
           </div>
         )}
 
-        {/* --- KOMPONEN: Tombol Aksi Tambah Tugas (Mobile) --- */}
+        {showRenameModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div onClick={() => setShowRenameModal(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+            <div className="relative bg-zinc-800 rounded-xl shadow-lg p-6 w-full max-w-sm">
+              <h2 className="text-white text-lg font-semibold mb-4">Ganti Nama Daftar</h2>
+              <input 
+                ref={renameModalInputRef} 
+                type="text" 
+                value={renameInput} 
+                onChange={(e) => setRenameInput(e.target.value)} 
+                onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit()} 
+                placeholder="Masukkan judul baru" 
+                className="w-full text-white bg-zinc-700 p-2 rounded border border-zinc-600 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              />
+              <div className="flex justify-end space-x-2 mt-4">
+                <button onClick={() => setShowRenameModal(false)} className="px-4 py-2 text-gray-300 hover:bg-zinc-700 rounded transition-colors">Batal</button>
+                <button onClick={handleRenameSubmit} className="px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700 disabled:bg-gray-500/50 disabled:cursor-not-allowed transition-colors" disabled={!renameInput.trim()}>Simpan</button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {!showModal && !showMobileInput && !showAddListModal &&(
           <div className="md:hidden fixed bottom-4 right-4 z-20">
             <button onClick={() => setShowMobileInput(true)} className="bg-sky-600 text-white w-14 h-14 rounded-full text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-200 shadow-lg flex items-center justify-center" disabled={currentList === "favorites"}>+</button>
           </div>
         )}
 
-        {/* --- KOMPONEN: Input Tambah Tugas (Mobile) --- */}
         {!showModal && showMobileInput && (
           <div className="md:hidden fixed bottom-0 left-0 right-0 p-4   z-20">
             <div className="flex items-center space-x-2">
@@ -570,7 +568,6 @@ function App() {
           </div>
         )}
 
-        {/* --- KOMPONEN: Modal Detail Tugas --- */}
         {(showModal || isDevMode) && selectedTodo && (
           <div className="fixed inset-0 bg-white p-4 overflow-y-auto z-30">
             <div className="flex items-center justify-between pb-4 border-b border-gray-200">
