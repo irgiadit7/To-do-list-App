@@ -240,8 +240,27 @@ function App() {
       case "low":
         return "bg-green-500";
       default:
-        return "bg-gray-400";
+        return "bg-zinc-600"; // Warna default diubah agar sesuai tema gelap
     }
+  };
+  
+  const getPriorityButtonClass = (priority, selectedPriority) => {
+    const baseClass = "flex-1 p-2 rounded-lg border-2 transition-all duration-200 text-sm font-medium";
+    const colors = {
+      high: {
+        selected: "bg-red-500 text-white border-red-500",
+        unselected: "bg-transparent text-red-400 border-zinc-700 hover:bg-zinc-800 hover:border-red-500"
+      },
+      medium: {
+        selected: "bg-yellow-500 text-white border-yellow-500",
+        unselected: "bg-transparent text-yellow-400 border-zinc-700 hover:bg-zinc-800 hover:border-yellow-500"
+      },
+      low: {
+        selected: "bg-green-500 text-white border-green-500",
+        unselected: "bg-transparent text-green-400 border-zinc-700 hover:bg-zinc-800 hover:border-green-500"
+      }
+    };
+    return `${baseClass} ${selectedPriority === priority ? colors[priority].selected : colors[priority].unselected}`;
   };
 
   const handleRenameList = () => {
@@ -548,17 +567,11 @@ function App() {
             </div>
           </div>
         )}
-
-        {/* ======================================================================== */}
-        {/* === PERUBAHAN DIMULAI DI SINI: Logika Tombol Mobile Diperbaiki === */}
-        {/* ======================================================================== */}
+        
         {!showModal && !showAddListModal && (
           <div className="md:hidden">
-            
-            {/* --- Tombol Aksi: '+' atau 'X' --- */}
             <div className="fixed bottom-4 right-4 z-30">
               { !showMobileInput ? (
-                // Tampilkan tombol '+' jika input tertutup
                 <button 
                   onClick={() => setShowMobileInput(true)} 
                   className="bg-sky-600 text-white w-14 h-14 rounded-full text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-300 shadow-lg flex items-center justify-center" 
@@ -567,18 +580,14 @@ function App() {
                   +
                 </button>
               ) : (
-                // Tampilkan tombol 'X' jika input terbuka
                 <button 
                   onClick={() => setShowMobileInput(false)}
                   className="bg-sky-600 text-white  w-14 h-14 rounded-full text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-300 shadow-lg flex items-center justify-center"
-                  // Style sengaja disamakan persis dengan tombol '+' sesuai permintaan
                 >
                   ✕
                 </button>
               )}
             </div>
-
-            {/* --- Input Bar: Hanya muncul jika showMobileInput adalah true --- */}
             {showMobileInput && (
               <div className="fixed bottom-0 left-0 right-0 p-4   z-20 transition-transform duration-300 ease-in-out translate-y-0">
                 <div className="flex items-center space-x-2">
@@ -590,66 +599,81 @@ function App() {
                 </div>
               </div>
             )}
-            
           </div>
         )}
-        {/* ======================================================================== */}
-        {/* === PERUBAHAN BERAKHIR DI SINI === */}
-        {/* ======================================================================== */}
-
-
+        
         {(showModal || isDevMode) && selectedTodo && (
-          <div className="fixed inset-0 bg-white p-4 overflow-y-auto z-50">
-            <div className="flex items-center justify-between pb-4 border-b border-gray-200">
-              <button onClick={closeTodoDetails} className="text-gray-500 hover:text-gray-700 text-4xl">&times;</button>
-              <div className="flex items-center space-x-2">
-                <button onClick={() => toggleFavorite(selectedTodo.id)} className={`text-2xl hover:scale-110 active:scale-95 transition-all duration-200 ${selectedTodo.isFavorite ? "text-yellow-500" : "text-gray-400"}`}>&#9733;</button>
-                <button onClick={() => deleteTodo(selectedTodo.id)} className="text-gray-500 hover:text-red-500 active:scale-95 transition-all duration-200">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" fill="currentColor" className="bi bi-trash-fill" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" /></svg>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div onClick={closeTodoDetails} className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+            
+            <div className="relative bg-zinc-900 rounded-2xl shadow-lg w-full max-w-md max-h-[90vh] flex flex-col">
+              {/* --- Header Modal --- */}
+              <div className="flex items-center justify-between p-4 border-b border-zinc-800 flex-shrink-0">
+                <div className="flex items-center space-x-2">
+                  <button onClick={() => toggleFavorite(selectedTodo.id)} className={`p-2 rounded-full transition-colors duration-200 ${selectedTodo.isFavorite ? "text-yellow-400 bg-yellow-400/10" : "text-zinc-400 hover:bg-zinc-800"}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                    </svg>
+                  </button>
+                  <button onClick={() => deleteTodo(selectedTodo.id)} className="p-2 text-zinc-400 rounded-full hover:bg-zinc-800 hover:text-red-400 transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/></svg>
+                  </button>
+                </div>
+                <button onClick={closeTodoDetails} className="p-2 text-zinc-400 rounded-full hover:bg-zinc-800 transition-colors duration-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/></svg>
                 </button>
               </div>
-            </div>
-            <h2 className="text-3xl text-center font-bold mt-4 mb-2">{selectedTodo?.text}</h2>
-            <div className={`w-full h-2 rounded-full mb-4 ${getPriorityColor(selectedTodo?.priority)}`}></div>
-            <div className="my-4 flex">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="18" fill="currentColor" className="bi bi-list" viewBox="0 0 16 16"><path fillRule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/></svg>
-              <textarea className="flex w-full border-none focus:outline-none transition-all duration-300 text-sm placeholder-grey-950" value={selectedTodo?.details} onChange={(e) => updateTodoDetails({ details: e.target.value })} placeholder="Tambahkan detail"/>
-            </div>
-            <div className="flex space-x-4 my-4">
-              <div className="flex-1">
-                <label className="block text-gray-700 font-medium mb-1">Tanggal</label>
-                <input type="date" value={selectedTodo?.date} onChange={(e) => updateTodoDetails({ date: e.target.value })} className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300 text-sm"/>
+
+              {/* --- Konten Modal (Scrollable) --- */}
+              <div className="p-6 overflow-y-auto space-y-6 scrollbar-hide-native">
+                <h2 className="text-2xl font-bold text-white">{selectedTodo?.text}</h2>
+                <div className={`w-full h-1.5 rounded-full ${getPriorityColor(selectedTodo?.priority)}`}></div>
+
+                <div className="flex">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-text-left text-zinc-400 mr-3 mt-1 flex-shrink-0" viewBox="0 0 16 16"><path fillRule="evenodd" d="M2 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"/></svg>
+                  <textarea className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-zinc-300 text-sm placeholder-zinc-500 resize-none" rows="3" value={selectedTodo?.details} onChange={(e) => updateTodoDetails({ details: e.target.value })} placeholder="Tambahkan detail..."/>
+                </div>
+
+                <div className="flex space-x-4">
+                  <div className="flex-1">
+                    <label className="block text-zinc-400 font-medium mb-2 text-sm">Tanggal</label>
+                    <input type="date" value={selectedTodo?.date} onChange={(e) => updateTodoDetails({ date: e.target.value })} className="w-full p-2 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300 text-sm"/>
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-zinc-400 font-medium mb-2 text-sm">Waktu</label>
+                    <input type="time" value={selectedTodo?.time} onChange={(e) => updateTodoDetails({ time: e.target.value })} className="w-full p-2 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300 text-sm"/>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 font-medium mb-2 text-sm">Prioritas</label>
+                  <div className="flex space-x-2">
+                    <button onClick={() => updateTodoDetails({ priority: 'high' })} className={getPriorityButtonClass('high', selectedTodo?.priority)}>High</button>
+                    <button onClick={() => updateTodoDetails({ priority: 'medium' })} className={getPriorityButtonClass('medium', selectedTodo?.priority)}>Medium</button>
+                    <button onClick={() => updateTodoDetails({ priority: 'low' })} className={getPriorityButtonClass('low', selectedTodo?.priority)}>Low</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 font-medium mb-2 text-sm">Sub-tugas</label>
+                  <input type="text" placeholder="Tambahkan sub-tugas baru & tekan Enter..." onKeyDown={handleAddSubtask} className="w-full p-2 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300 text-sm placeholder-zinc-500"/>
+                  <ul className="mt-3 space-y-2">
+                    {selectedTodo?.subtasks.map((subtask) => (
+                      <li key={subtask.id} className="flex items-center justify-between bg-zinc-800/50 p-3 rounded-lg group">
+                        <div className="flex items-center">
+                          <input type="checkbox" id={`subtask-${subtask.id}`} checked={subtask.completed} onChange={() => toggleSubtask(subtask.id)} className="custom-checkbox mr-3"/>
+                          <label htmlFor={`subtask-${subtask.id}`} className={`text-sm cursor-pointer ${subtask.completed ? "line-through text-zinc-500" : "text-zinc-300"}`}>{subtask.text}</label>
+                        </div>
+                        <button onClick={() => deleteSubtask(subtask.id)} className="text-zinc-500 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100">&times;</button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-              <div className="flex-1">
-                <label className="block text-gray-700 font-medium mb-1">Waktu</label>
-                <input type="time" value={selectedTodo?.time} onChange={(e) => updateTodoDetails({ time: e.target.value })} className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300 text-sm"/>
-              </div>
-            </div>
-            <div className="my-4">
-              <label className="block text-gray-700 font-medium mb-1">Atur Prioritas</label>
-              <div className="flex space-x-2">
-                <button onClick={() => updateTodoDetails({ priority: "high" })} className={`flex-1 p-2 rounded-full border-2 transition-all duration-200 text-sm ${selectedTodo?.priority === "high" ? "bg-red-500 text-white border-red-500" : "bg-red-200 text-red-700 border-red-200 hover:bg-red-300"}`}>High</button>
-                <button onClick={() => updateTodoDetails({ priority: "medium" })} className={`flex-1 p-2 rounded-full border-2 transition-all duration-200 text-sm ${selectedTodo?.priority === "medium" ? "bg-yellow-500 text-white border-yellow-500" : "bg-yellow-200 text-yellow-700 border-yellow-200 hover:bg-yellow-300"}`}>Medium</button>
-                <button onClick={() => updateTodoDetails({ priority: "low" })} className={`flex-1 p-2 rounded-full border-2 transition-all duration-200 text-sm ${selectedTodo?.priority === "low" ? "bg-green-500 text-white border-green-500" : "bg-green-200 text-green-700 border-green-200 hover:bg-green-300"}`}>Low</button>
-              </div>
-            </div>
-            <div className="my-4">
-              <label className="block text-gray-700 font-medium mb-1">Tambahkan sub-tugas</label>
-              <input type="text" placeholder="Masukkan judul" onKeyDown={handleAddSubtask} className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300 text-sm"/>
-              <ul className="mt-2 space-y-2">
-                {selectedTodo?.subtasks.map((subtask) => (
-                  <li key={subtask.id} className="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
-                    <div className="flex items-center">
-                      <input type="checkbox" checked={subtask.completed} onChange={() => toggleSubtask(subtask.id)} className="mr-2 w-4 h-4 rounded-full text-sky-600 bg-gray-200 border-gray-300 focus:ring-sky-500 cursor-pointer"/>
-                      <span className={`text-sm ${subtask.completed ? "line-through text-gray-500" : "text-gray-800"}`}>{subtask.text}</span>
-                    </div>
-                    <button onClick={() => deleteSubtask(subtask.id)} className="text-red-400 hover:text-red-600">&times;</button>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         )}
+
       </div>
     </div>
   );
