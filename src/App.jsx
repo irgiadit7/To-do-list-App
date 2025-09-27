@@ -402,7 +402,6 @@ function App() {
                     <button onClick={() => setCurrentList("favorites")} className="px-2 md:px-4 font-medium pb-2 transition-all duration-300 relative group">
                       <span className={`flex items-center justify-center transition-colors duration-300 ${ currentList === "favorites" ? "text-yellow-400" : "text-white opacity-30"}`}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="24" fill="currentColor" className="bi bi-star-fill" viewBox="0 0 16 16">
-                          {/* *** PERBAIKAN: Path SVG bintang yang salah telah diperbaiki *** */}
                           <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
                         </svg>
                       </span>
@@ -550,26 +549,57 @@ function App() {
           </div>
         )}
 
-        {!showModal && !showMobileInput && !showAddListModal &&(
-          <div className="md:hidden fixed bottom-4 right-4 z-20">
-            <button onClick={() => setShowMobileInput(true)} className="bg-sky-600 text-white w-14 h-14 rounded-full text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-200 shadow-lg flex items-center justify-center" disabled={currentList === "favorites"}>+</button>
-          </div>
-        )}
-
-        {!showModal && showMobileInput && (
-          <div className="md:hidden fixed bottom-0 left-0 right-0 p-4   z-20">
-            <div className="flex items-center space-x-2">
-              <div className="relative group flex-grow">
-                  <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 blur opacity-0 group-focus-within:opacity-75 transition duration-200 animate-pulse"></div>
-                  <input ref={mobileInputRef} value={input} onChange={(e) => setInput(e.target.value)} type="text" placeholder="Tambahkan tugas baru..." className="relative text-white w-full bg-zinc-800 px-4 py-3 border rounded-full focus:outline-none focus:ring-0 focus:border-transparent placeholder-gray-500 text-sm" onKeyDown={(e) => e.key === "Enter" && addTodo()}/>
-              </div>
-              <button onClick={addTodo} className="bg-sky-900 text-white w-12 h-12 rounded-2xl text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-200 shadow-md flex items-center justify-center flex-shrink-0">+</button>
+        {/* ======================================================================== */}
+        {/* === PERUBAHAN DIMULAI DI SINI: Logika Tombol Mobile Diperbaiki === */}
+        {/* ======================================================================== */}
+        {!showModal && !showAddListModal && (
+          <div className="md:hidden">
+            
+            {/* --- Tombol Aksi: '+' atau 'X' --- */}
+            <div className="fixed bottom-4 right-4 z-30">
+              { !showMobileInput ? (
+                // Tampilkan tombol '+' jika input tertutup
+                <button 
+                  onClick={() => setShowMobileInput(true)} 
+                  className="bg-sky-600 text-white w-14 h-14 rounded-full text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-300 shadow-lg flex items-center justify-center" 
+                  disabled={currentList === "favorites"}
+                >
+                  +
+                </button>
+              ) : (
+                // Tampilkan tombol 'X' jika input terbuka
+                <button 
+                  onClick={() => setShowMobileInput(false)}
+                  className="bg-sky-600 text-white  w-14 h-14 rounded-full text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-300 shadow-lg flex items-center justify-center"
+                  // Style sengaja disamakan persis dengan tombol '+' sesuai permintaan
+                >
+                  ✕
+                </button>
+              )}
             </div>
+
+            {/* --- Input Bar: Hanya muncul jika showMobileInput adalah true --- */}
+            {showMobileInput && (
+              <div className="fixed bottom-0 left-0 right-0 p-4   z-20 transition-transform duration-300 ease-in-out translate-y-0">
+                <div className="flex items-center space-x-2">
+                  <div className="relative group flex-grow">
+                      <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 blur opacity-0 group-focus-within:opacity-75 transition duration-800 animate-pulse"></div>
+                      <input ref={mobileInputRef} value={input} onChange={(e) => setInput(e.target.value)} type="text" placeholder="Tambahkan tugas baru..." className="relative text-white w-full bg-zinc-800 px-4 py-3 border rounded-full focus:outline-none focus:ring-0 focus:border-transparent placeholder-gray-500 text-sm" onKeyDown={(e) => e.key === "Enter" && addTodo()}/>
+                  </div>
+                  <button onClick={addTodo} className="bg-sky-900 text-white w-12 h-12 rounded-2xl text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-200 shadow-md flex items-center justify-center flex-shrink-0">+</button>
+                </div>
+              </div>
+            )}
+            
           </div>
         )}
+        {/* ======================================================================== */}
+        {/* === PERUBAHAN BERAKHIR DI SINI === */}
+        {/* ======================================================================== */}
+
 
         {(showModal || isDevMode) && selectedTodo && (
-          <div className="fixed inset-0 bg-white p-4 overflow-y-auto z-30">
+          <div className="fixed inset-0 bg-white p-4 overflow-y-auto z-50">
             <div className="flex items-center justify-between pb-4 border-b border-gray-200">
               <button onClick={closeTodoDetails} className="text-gray-500 hover:text-gray-700 text-4xl">&times;</button>
               <div className="flex items-center space-x-2">
