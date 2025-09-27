@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-
+import { BackgroundBeamsWithCollision } from "@/components/ui/background-beams-with-collision";
 
 function App() {
   // ===================================================================================
@@ -353,34 +353,33 @@ function App() {
   // === BAGIAN RENDER (JSX) ===
   // ===================================================================================
   return (
-    <>
-      {/* --- CSS TAMBAHAN UNTUK STYLING --- */}
-      <style>{`
-        .scrollbar-hide-native::-webkit-scrollbar { display: none; }
-        .scrollbar-hide-native { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        .custom-checkbox {
-          appearance: none; -webkit-appearance: none;
-          position: relative; width: 20px; height: 20px;
-          border-radius: 9999px; border: 2px solid #52525b;
-          cursor: pointer; transition: background-color 0.2s, border-color 0.2s;
-          flex-shrink: 0;
-        }
-        .custom-checkbox:checked { background-color: #0284c7; border-color: #0284c7; }
-        .custom-checkbox::before {
-          content: ''; position: absolute;
-          top: 50%; left: 50%;
-          transform: translate(-50%, -50%) scale(0);
-          width: 12px; height: 12px;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3E%3Cpath d='M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022z'/%3E%3C/svg%3E");
-          background-size: contain; background-repeat: no-repeat;
-          transition: transform 0.2s ease-in-out;
-        }
-        .custom-checkbox:checked::before { transform: translate(-50%, -50%) scale(1); }
-      `}</style>
-      
-      {/* --- KONTENER UTAMA APLIKASI --- */}
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 p-4 font-sans relative">
+    // PERUBAHAN FINAL: Semua kelas layout ada di sini, tidak ada div tambahan.
+    <BackgroundBeamsWithCollision className="lg:max-h-screen min-h-screen w-full bg-slate-950 flex flex-col items-center justify-center p-4 font-sans relative">
+
+        {/* --- CSS TAMBAHAN UNTUK STYLING --- */}
+        <style>{`
+          .scrollbar-hide-native::-webkit-scrollbar { display: none; }
+          .scrollbar-hide-native { -ms-overflow-style: none; scrollbar-width: none; }
+          
+          .custom-checkbox {
+            appearance: none; -webkit-appearance: none;
+            position: relative; width: 20px; height: 20px;
+            border-radius: 9999px; border: 2px solid #52525b;
+            cursor: pointer; transition: background-color 0.2s, border-color 0.2s;
+            flex-shrink: 0;
+          }
+          .custom-checkbox:checked { background-color: #0284c7; border-color: #0284c7; }
+          .custom-checkbox::before {
+            content: ''; position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 12px; height: 12px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3E%3Cpath d='M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022z'/%3E%3C/svg%3E");
+            background-size: contain; background-repeat: no-repeat;
+            transition: transform 0.2s ease-in-out;
+          }
+          .custom-checkbox:checked::before { transform: translate(-50%, -50%) scale(1); }
+        `}</style>
 
         {/* --- KOMPONEN: Tombol Profil --- */}
         {!showModal && !showAddListModal && (
@@ -624,8 +623,7 @@ function App() {
             </div>
           </div>
         )}
-      </div>
-    </>
+    </BackgroundBeamsWithCollision>
   );
 }
 
