@@ -559,11 +559,11 @@ function App() {
 
         {/* --- KOMPONEN: Input Tambah Tugas (Mobile) --- */}
         {!showModal && showMobileInput && (
-          <div className="md:hidden fixed bottom-0 left-0 right-0 p-4  border-t border-zinc-800 z-20">
+          <div className="md:hidden fixed bottom-0 left-0 right-0 p-4   z-20">
             <div className="flex items-center space-x-2">
               <div className="relative group flex-grow">
                   <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 blur opacity-0 group-focus-within:opacity-75 transition duration-200 animate-pulse"></div>
-                  <input ref={mobileInputRef} value={input} onChange={(e) => setInput(e.target.value)} type="text" placeholder="Tambahkan tugas baru..." className="relative text-white w-full bg-zinc-800 px-4 py-3 border border-white/20 rounded-full focus:outline-none focus:ring-0 focus:border-transparent placeholder-gray-500 text-sm" onKeyDown={(e) => e.key === "Enter" && addTodo()}/>
+                  <input ref={mobileInputRef} value={input} onChange={(e) => setInput(e.target.value)} type="text" placeholder="Tambahkan tugas baru..." className="relative text-white w-full bg-zinc-800 px-4 py-3 border rounded-full focus:outline-none focus:ring-0 focus:border-transparent placeholder-gray-500 text-sm" onKeyDown={(e) => e.key === "Enter" && addTodo()}/>
               </div>
               <button onClick={addTodo} className="bg-sky-900 text-white w-12 h-12 rounded-2xl text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-200 shadow-md flex items-center justify-center flex-shrink-0">+</button>
             </div>
