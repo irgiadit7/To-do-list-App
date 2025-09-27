@@ -412,18 +412,16 @@ function App() {
           </div>
         )}
 
-        {/* ======================================================================== */}
-        {/* === PERUBAHAN DIMULAI DI SINI: UKURAN DESKTOP DIPERBESAR === */}
-        {/* ======================================================================== */}
         <div className="max-w-md md:max-w-lg w-full my-auto">
           {/* --- KONTENER UTAMA DENGAN EFEK GLASS --- */}
-          <div className={`bg-white/5 backdrop-blur-md border border-zinc-700 rounded-3xl p-6 md:p-8 w-full relative transition-all duration-300 ${showAddListModal || showRenameModal ? 'blur-sm' : 'blur-none'}`}>
+          {/* === PERUBAHAN DI SINI === */}
+          <div className={`bg-black/20 backdrop-blur-lg border border-zinc-700 rounded-3xl p-6 md:p-8 w-full relative transition-all duration-300 ${showAddListModal || showRenameModal ? 'blur-sm' : 'blur-none'}`}>
             {!showModal && (
               <>
                 <div className="mb-6 flex items-center border-b-2 border-zinc-800 relative">
                   <div className="flex-none z-10">
-                    <button onClick={() => setCurrentList("favorites")} className="px-2 md:px-4 font-medium pb-2 transition-all duration-300 relative group">
-                      <span className={`flex items-center justify-center transition-colors duration-300 ${ currentList === "favorites" ? "text-yellow-400" : "text-white opacity-30"}`}>
+                    <button onClick={() => setCurrentList("favorites")} className={`px-2 md:px-4 font-medium pb-2 transition-all duration-300 relative group ${ currentList === "favorites" ? "text-yellow-400" : "text-white opacity-30"}`}>
+                      <span className="flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="24" fill="currentColor" className="bi bi-star-fill" viewBox="0 0 16 16">
                           <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
                         </svg>
@@ -490,7 +488,7 @@ function App() {
                 {incompleteTodos.length > 0 && (
                   <ul className="space-y-1">
                     {incompleteTodos.map((todo) => (
-                      <li key={todo.id} className="p-4 rounded-xl flex justify-between items-center transition-all duration-300 hover:bg-white/10 group">
+                      <li key={todo.id} className="p-4 rounded-xl flex justify-between items-center transition-all duration-300 hover:bg-black/30 group">
                         <div className="flex items-center flex-grow overflow-hidden whitespace-nowrap">
                           <input id={`todo-${todo.id}`} type="checkbox" checked={todo.completed} onChange={() => toggleComplete(todo.id)} className="custom-checkbox mr-4"/>
                           <span onClick={() => openTodoDetails(todo)} className="flex-grow text-gray-200 text-sm truncate cursor-pointer group-hover:text-sky-400 transition-colors">{todo.text}</span>
@@ -512,8 +510,9 @@ function App() {
           </div>
           
           {/* --- KONTENER "SELESAI" DENGAN EFEK GLASS --- */}
+           {/* === PERUBAHAN DI SINI === */}
           {completedTodosInCurrentList.length > 0 && (
-            <div className="bg-white/5 backdrop-blur-md border border-zinc-700 rounded-3xl p-6 md:p-8 w-full mt-4 flex-shrink-0">
+            <div className="bg-black/20 backdrop-blur-lg border border-zinc-700 rounded-3xl p-6 md:p-8 w-full mt-4 flex-shrink-0">
               <button className="w-full text-left text-lg font-medium mb-4 text-gray-300 flex justify-between items-center" onClick={() => setShowCompleted(!showCompleted)}>
                 Selesai ({completedTodosInCurrentList.length})
                 <svg xmlns="http://www.w3.org/2000/svg" className={`w-5 h-5 transition-transform duration-200 ${showCompleted ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -521,7 +520,7 @@ function App() {
               {showCompleted && (
                   <ul className="space-y-1">
                     {completedTodosInCurrentList.map((todo) => (
-                      <li key={todo.id} className="p-4 rounded-xl flex justify-between items-center transition-all duration-300 hover:bg-white/10 group">
+                      <li key={todo.id} className="p-4 rounded-xl flex justify-between items-center transition-all duration-300 hover:bg-black/30 group">
                         <div className="flex items-center flex-grow overflow-hidden whitespace-nowrap">
                           <input id={`todo-${todo.id}`} type="checkbox" checked={todo.completed} onChange={() => toggleComplete(todo.id)} className="custom-checkbox mr-4"/>
                           <span onClick={() => openTodoDetails(todo)} className="flex-grow text-gray-500 line-through text-sm truncate cursor-pointer group-hover:text-sky-400 transition-colors">{todo.text}</span>
@@ -536,9 +535,6 @@ function App() {
             </div>
           )}
         </div>
-        {/* ======================================================================== */}
-        {/* === PERUBAHAN BERAKHIR DI SINI === */}
-        {/* ======================================================================== */}
 
 
         {showAddListModal && (
