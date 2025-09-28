@@ -23,7 +23,7 @@ function App() {
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [sortOrder, setSortOrder] = useState("manual");
   const [showCompleted, setShowCompleted] = useState(true);
-  const [showMobileInput, setShowMobileInput] = useState(false);
+  const [showMobileAddPrompt, setShowMobileAddPrompt] = useState(false);
   const [user, setUser] = useState(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showAddListModal, setShowAddListModal] = useState(false);
@@ -51,10 +51,10 @@ function App() {
   // ===================================================================================
 
   useEffect(() => {
-    if (showMobileInput && mobileInputRef.current) {
+    if (showMobileAddPrompt && mobileInputRef.current) {
       mobileInputRef.current.focus();
     }
-  }, [showMobileInput]);
+  }, [showMobileAddPrompt]);
 
   useEffect(() => {
     if (showAddListModal && newListInputRef.current) {
@@ -139,7 +139,7 @@ function App() {
         )
       );
       setInput("");
-      setShowMobileInput(false);
+      setShowMobileAddPrompt(false);
     } else if (currentList === "favorites") {
       alert("Tidak bisa menambah tugas di daftar Favorit.");
     }
@@ -211,11 +211,16 @@ function App() {
     updateTodoDetails({ subtasks: updatedSubtasks });
   };
 
-  const deleteSubtask = (subtaskId) => {
-    updateTodoDetails({
-      subtasks: selectedTodo.subtasks.filter((sub) => sub.id !== subtaskId),
-    });
-  };
+const deleteSubtask = (subtaskId) => {
+  // Menambahkan pengecekan untuk memastikan selectedTodo tidak null
+  if (!selectedTodo) {
+    return;
+  }
+  
+  updateTodoDetails({
+    subtasks: selectedTodo.subtasks.filter((sub) => sub.id !== subtaskId),
+  });
+};
 
   const toggleFavorite = (id) => {
     setLists(
@@ -413,9 +418,7 @@ function App() {
         )}
 
         <div className="max-w-md md:max-w-lg w-full my-auto">
-          {/* --- KONTENER UTAMA DENGAN EFEK GLASS --- */}
-          {/* === PERUBAHAN DI SINI === */}
-          <div className={`bg-black/20 backdrop-blur-lg border border-zinc-700 rounded-3xl p-6 md:p-8 w-full relative transition-all duration-300 ${showAddListModal || showRenameModal ? 'blur-sm' : 'blur-none'}`}>
+          <div className={`bg-black/20 backdrop-blur-lg border border-zinc-700 rounded-3xl p-6 md:p-8 w-full relative transition-all duration-300 ${showAddListModal || showRenameModal || showMobileAddPrompt ? 'blur-sm' : 'blur-none'}`}>
             {!showModal && (
               <>
                 <div className="mb-6 flex items-center border-b-2 border-zinc-800 relative">
@@ -509,10 +512,8 @@ function App() {
             )}
           </div>
           
-          {/* --- KONTENER "SELESAI" DENGAN EFEK GLASS --- */}
-           {/* === PERUBAHAN DI SINI === */}
           {completedTodosInCurrentList.length > 0 && (
-            <div className="bg-black/20 backdrop-blur-lg border border-zinc-700 rounded-3xl p-6 md:p-8 w-full mt-4 flex-shrink-0">
+            <div className={`bg-black/20 backdrop-blur-lg border border-zinc-700 rounded-3xl p-6 md:p-8 w-full mt-4 flex-shrink-0 transition-all duration-300 ${showAddListModal || showRenameModal || showMobileAddPrompt ? 'blur-sm' : 'blur-none'}`}>
               <button className="w-full text-left text-lg font-medium mb-4 text-gray-300 flex justify-between items-center" onClick={() => setShowCompleted(!showCompleted)}>
                 Selesai ({completedTodosInCurrentList.length})
                 <svg xmlns="http://www.w3.org/2000/svg" className={`w-5 h-5 transition-transform duration-200 ${showCompleted ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -536,6 +537,7 @@ function App() {
           )}
         </div>
 
+        {/* ======================= MODALS ======================= */}
 
         {showAddListModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -556,15 +558,7 @@ function App() {
             <div onClick={() => setShowRenameModal(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
             <div className="relative bg-zinc-800 rounded-xl shadow-lg p-6 w-full max-w-sm">
               <h2 className="text-white text-lg font-semibold mb-4">Ganti Nama Daftar</h2>
-              <input 
-                ref={renameModalInputRef} 
-                type="text" 
-                value={renameInput} 
-                onChange={(e) => setRenameInput(e.target.value)} 
-                onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit()} 
-                placeholder="Masukkan judul baru" 
-                className="w-full text-white bg-zinc-700 p-2 rounded border border-zinc-600 focus:outline-none focus:ring-2 focus:ring-sky-500"
-              />
+              <input ref={renameModalInputRef} type="text" value={renameInput} onChange={(e) => setRenameInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit()} placeholder="Masukkan judul baru" className="w-full text-white bg-zinc-700 p-2 rounded border border-zinc-600 focus:outline-none focus:ring-2 focus:ring-sky-500"/>
               <div className="flex justify-end space-x-2 mt-4">
                 <button onClick={() => setShowRenameModal(false)} className="px-4 py-2 text-gray-300 hover:bg-zinc-700 rounded transition-colors">Batal</button>
                 <button onClick={handleRenameSubmit} className="px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700 disabled:bg-gray-500/50 disabled:cursor-not-allowed transition-colors" disabled={!renameInput.trim()}>Simpan</button>
@@ -576,43 +570,34 @@ function App() {
         {!showModal && !showAddListModal && (
           <div className="md:hidden">
             <div className="fixed bottom-4 right-4 z-30">
-              { !showMobileInput ? (
-                <button 
-                  onClick={() => setShowMobileInput(true)} 
-                  className="bg-sky-600 text-white w-14 h-14 rounded-full text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-300 shadow-lg flex items-center justify-center" 
-                  disabled={currentList === "favorites"}
-                >
-                  +
-                </button>
-              ) : (
-                <button 
-                  onClick={() => setShowMobileInput(false)}
-                  className="bg-sky-600 text-white  w-14 h-14 rounded-full text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-300 shadow-lg flex items-center justify-center"
-                >
-                  ✕
-                </button>
-              )}
+              <button onClick={() => setShowMobileAddPrompt(true)} className="bg-sky-600 text-white w-14 h-14 rounded-full text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-300 shadow-lg flex items-center justify-center" disabled={currentList === "favorites"}>
+                +
+              </button>
             </div>
-            {showMobileInput && (
-              <div className="fixed bottom-0 left-0 right-0 p-4   z-20 transition-transform duration-300 ease-in-out translate-y-0">
-                <div className="flex items-center space-x-2">
-                  <div className="relative group flex-grow">
-                      <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 blur opacity-0 group-focus-within:opacity-75 transition duration-800 animate-pulse"></div>
-                      <input ref={mobileInputRef} value={input} onChange={(e) => setInput(e.target.value)} type="text" placeholder="Tambahkan tugas baru..." className="relative text-white w-full bg-zinc-800 px-4 py-3 border rounded-full focus:outline-none focus:ring-0 focus:border-transparent placeholder-gray-500 text-sm" onKeyDown={(e) => e.key === "Enter" && addTodo()}/>
-                  </div>
-                  <button onClick={addTodo} className="bg-sky-900 text-white w-12 h-12 rounded-2xl text-2xl hover:bg-sky-700 active:scale-95 transition-all duration-200 shadow-md flex items-center justify-center flex-shrink-0">+</button>
-                </div>
-              </div>
-            )}
           </div>
         )}
         
+        {showMobileAddPrompt && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:hidden">
+            <div onClick={() => { setShowMobileAddPrompt(false); setInput(""); }} className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+            <div className="relative bg-zinc-800 rounded-xl shadow-lg p-6 w-full max-w-sm">
+              <h2 className="text-white text-lg font-semibold mb-4">Tugas Baru</h2>
+              <input ref={mobileInputRef} type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addTodo()} placeholder="Tulis tugas di sini..." className="w-full text-white bg-zinc-700 p-2 rounded border border-zinc-600 focus:outline-none focus:ring-2 focus:ring-sky-500"/>
+              <div className="flex justify-end space-x-2 mt-4">
+                <button onClick={() => { setShowMobileAddPrompt(false); setInput(""); }} className="px-4 py-2 text-gray-300 hover:bg-zinc-700 rounded transition-colors">Batal</button>
+                <button onClick={addTodo} className="px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700 disabled:bg-gray-500/50 disabled:cursor-not-allowed transition-colors" disabled={!input.trim()}>
+                  Simpan
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {(showModal || isDevMode) && selectedTodo && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div onClick={closeTodoDetails} className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
             
             <div className="relative bg-zinc-900 rounded-2xl shadow-lg w-full max-w-md max-h-[90vh] flex flex-col">
-              {/* --- Header Modal --- */}
               <div className="flex items-center justify-between p-4 border-b border-zinc-800 flex-shrink-0">
                 <div className="flex items-center space-x-2">
                   <button onClick={() => toggleFavorite(selectedTodo.id)} className={`p-2 rounded-full transition-colors duration-200 ${selectedTodo.isFavorite ? "text-yellow-400 bg-yellow-400/10" : "text-zinc-400 hover:bg-zinc-800"}`}>
@@ -629,24 +614,26 @@ function App() {
                 </button>
               </div>
 
-              {/* --- Konten Modal (Scrollable) --- */}
               <div className="p-6 overflow-y-auto space-y-6 scrollbar-hide-native">
                 <h2 className="text-2xl font-bold text-white">{selectedTodo?.text}</h2>
                 <div className={`w-full h-1.5 rounded-full ${getPriorityColor(selectedTodo?.priority)}`}></div>
 
                 <div className="flex">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-text-left text-zinc-400 mr-3 mt-1 flex-shrink-0" viewBox="0 0 16 16"><path fillRule="evenodd" d="M2 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"/></svg>
-                  <textarea className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-zinc-300 text-sm placeholder-zinc-500 resize-none" rows="3" value={selectedTodo?.details} onChange={(e) => updateTodoDetails({ details: e.target.value })} placeholder="Tambahkan detail..."/>
+                  {/* === [FIX] Menambahkan || '' untuk mencegah error controlled/uncontrolled input === */}
+                  <textarea className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-zinc-300 text-sm placeholder-zinc-500 resize-none" rows="3" value={selectedTodo?.details || ''} onChange={(e) => updateTodoDetails({ details: e.target.value })} placeholder="Tambahkan detail..."/>
                 </div>
 
                 <div className="flex space-x-4">
                   <div className="flex-1">
                     <label className="block text-zinc-400 font-medium mb-2 text-sm">Tanggal</label>
-                    <input type="date" value={selectedTodo?.date} onChange={(e) => updateTodoDetails({ date: e.target.value })} className="w-full p-2 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300 text-sm"/>
+                    {/* === [FIX] Menambahkan || '' untuk mencegah error controlled/uncontrolled input === */}
+                    <input type="date" value={selectedTodo?.date || ''} onChange={(e) => updateTodoDetails({ date: e.target.value })} className="w-full p-2 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300 text-sm"/>
                   </div>
                   <div className="flex-1">
                     <label className="block text-zinc-400 font-medium mb-2 text-sm">Waktu</label>
-                    <input type="time" value={selectedTodo?.time} onChange={(e) => updateTodoDetails({ time: e.target.value })} className="w-full p-2 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300 text-sm"/>
+                    {/* === [FIX] Menambahkan || '' untuk mencegah error controlled/uncontrolled input === */}
+                    <input type="time" value={selectedTodo?.time || ''} onChange={(e) => updateTodoDetails({ time: e.target.value })} className="w-full p-2 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300 text-sm"/>
                   </div>
                 </div>
 
@@ -669,7 +656,6 @@ function App() {
                           <input type="checkbox" id={`subtask-${subtask.id}`} checked={subtask.completed} onChange={() => toggleSubtask(subtask.id)} className="custom-checkbox mr-3"/>
                           <label htmlFor={`subtask-${subtask.id}`} className={`text-sm cursor-pointer ${subtask.completed ? "line-through text-zinc-500" : "text-zinc-300"}`}>{subtask.text}</label>
                         </div>
-                        <button onClick={() => deleteSubtask(subtask.id)} className="text-zinc-500 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100">&times;</button>
                       </li>
                     ))}
                   </ul>
