@@ -90,7 +90,7 @@ export const BackgroundBeamsWithCollision = ({
   );
 };
 
-const CollisionMechanism = React.forwardRef(({ parentRef, containerRef, beamOptions = {} }, ref) => {
+const CollisionMechanism = (({ parentRef, containerRef, beamOptions = {} }, ref) => {
   const beamRef = useRef(null);
   const [collision, setCollision] = useState({
     detected: false,
@@ -131,7 +131,7 @@ const CollisionMechanism = React.forwardRef(({ parentRef, containerRef, beamOpti
     const animationInterval = setInterval(checkCollision, 50);
 
     return () => clearInterval(animationInterval);
-  }, [cycleCollisionDetected, containerRef]);
+  }, [cycleCollisionDetected, containerRef, parentRef]);
 
   useEffect(() => {
     if (collision.detected && collision.coordinates) {
