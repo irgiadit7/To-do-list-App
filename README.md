@@ -1,16 +1,46 @@
-# React + Vite
+# 📝 To-do-list-App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Mission 4 Basic – @Harisenin Bootcamp
 
-Currently, two official plugins are available:
+Aplikasi **To-do List** berbasis **React + Tailwind + TypeScript** untuk mengelola pekerjaan harian dengan mudah.  
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 💻 Tech Stack
+- ⚛️ React  
+- 🎨 Tailwind CSS  
+- 🟦 TypeScript  
 
-The React Compiler is not enabled on this template. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## ✨ Fitur
+- ➕ Tambah To-do  
+- 📆 List harian (filter berdasarkan tanggal)  
+- ✅ Centang selesai / undo  
+- 🗑️ Hapus to-do satuan / semua sekaligus  
+- 👤 Profil user  
+- ⏱️ Waktu dibuat & selesai  
+- 🔥 Level prioritas  
+- 🗂️ Buat daftar baru  
+- ✏️ Ganti nama daftar  
+- ❌ Hapus daftar  
+- ➕ Sub To-do  
+- 📝 Deskripsi tambahan  
+- ⭐ Tandai (starred)  
+- 🏁 Tandai selesai  
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 📂 Struktur Folder
+📦 To-do-list-App
+┣ 📂 public
+┣ 📂 src
+┃ ┣ 📂 assets
+┃ ┣ 📂 components
+┃ ┣ 📂 lib
+┃ ┣ 📜 App.jsx
+┃ ┣ 📜 main.jsx
+┃ ┗ 📜 utils.js
+┣ 📜 package.json
+┣ 📜 vite.config.js
+┗ 📜 README.md
